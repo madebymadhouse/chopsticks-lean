@@ -1,0 +1,9 @@
+{
+  "name": "chopsticks",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "discord.js": "...",
+    "dotenv": "..."
+  }
+}
