@@ -83,22 +83,30 @@ export const voiceCommand = {
 }
 
     if (sub === "lobby-remove") {
-      const channel = interaction.options.getChannel("channel");
+  const channel = interaction.options.getChannel("channel");
 
-      const removed = await removeLobby(guildId, channel.id);
+  const result = await removeLobby(guildId, channel.id);
 
-      if (!removed) {
-        return interaction.reply({
-          content: "No voice lobby configured",
-          flags: 64
-        });
-      }
+  if (!result.ok && result.reason === "missing") {
+    return interaction.reply({
+      content: "That voice lobby is not registered",
+      flags: 64
+    });
+  }
 
-      return interaction.reply({
-        content: "Voice lobby removed",
-        flags: 64
-      });
-    }
+  if (!result.ok && result.reason === "active") {
+    return interaction.reply({
+      content: "Cannot remove lobby while active temp channels exist",
+      flags: 64
+    });
+  }
+
+  return interaction.reply({
+    content: "Voice lobby removed",
+    flags: 64
+  });
+}
+
 
     if (sub === "reset") {
       await resetVoice(guildId);
