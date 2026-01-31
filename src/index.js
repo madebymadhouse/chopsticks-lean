@@ -4,7 +4,6 @@ import { config } from "dotenv";
 
 import { voiceCommand } from "./tools/voice/commands.js";
 import voiceStateEvent from "./events/voiceStateUpdate.js";
-
 config();
 
 const client = new Client({
