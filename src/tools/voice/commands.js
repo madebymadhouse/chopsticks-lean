@@ -64,23 +64,45 @@ export const voiceCommand = {
     if (sub === "lobby-add") {
       const channel = interaction.options.getChannel("channel");
       const category = interaction.options.getChannel("category");
+
       await addLobby(guildId, channel.id, category.id);
-      return interaction.reply({ content: "Voice lobby added", ephemeral: true });
+
+      return interaction.reply({
+        content: "Voice lobby added",
+        ephemeral: true
+      });
     }
 
     if (sub === "lobby-remove") {
       const channel = interaction.options.getChannel("channel");
-      await removeLobby(guildId, channel.id);
-      return interaction.reply({ content: "Voice lobby removed", ephemeral: true });
+
+      const removed = await removeLobby(guildId, channel.id);
+
+      if (!removed) {
+        return interaction.reply({
+          content: "No voice lobby configured",
+          ephemeral: true
+        });
+      }
+
+      return interaction.reply({
+        content: "Voice lobby removed",
+        ephemeral: true
+      });
     }
 
     if (sub === "reset") {
       await resetVoice(guildId);
-      return interaction.reply({ content: "Voice configuration reset", ephemeral: true });
+
+      return interaction.reply({
+        content: "Voice configuration reset",
+        ephemeral: true
+      });
     }
 
     if (sub === "status") {
       const status = await getStatus(guildId);
+
       return interaction.reply({
         content: "```json\n" + JSON.stringify(status, null, 2) + "\n```",
         ephemeral: true

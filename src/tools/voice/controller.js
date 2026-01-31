@@ -9,8 +9,14 @@ export const addLobby = async (guildId, lobbyChannelId, categoryId) => {
 
 export const removeLobby = async (guildId, lobbyChannelId) => {
   const data = loadGuildData(guildId);
+
+  if (!data.lobbies[lobbyChannelId]) {
+    return false;
+  }
+
   delete data.lobbies[lobbyChannelId];
   saveGuildData(guildId, data);
+  return true;
 };
 
 export const resetVoice = async (guildId) => {
@@ -23,4 +29,3 @@ export const resetVoice = async (guildId) => {
 export const getStatus = async (guildId) => {
   return loadGuildData(guildId);
 };
-
