@@ -60,66 +60,55 @@ export const voiceCommand = {
     ),
 
   async execute(interaction) {
-    const guildId = interaction.guildId;
-    const sub = interaction.options.getSubcommand();
+  const guildId = interaction.guildId;
+  const sub = interaction.options.getSubcommand();
 
-    if (sub === "lobby-add") {
-      const channel = interaction.options.getChannel("channel");
-      const category = interaction.options.getChannel("category");
+  if (sub === "lobby-add") {
+    const channel = interaction.options.getChannel("channel");
+    const category = interaction.options.getChannel("category");
 
-      const added = await addLobby(guildId, channel.id, category.id);
+    const added = await addLobby(guildId, channel.id, category.id);
 
-      if (!added) {
-        await interaction.reply({
-          content: "That voice lobby is already registered",
-          flags: 64
-        });
-        return;
-      }
-
-      await interaction.reply({
-        content: "Voice lobby added",
-        flags: 64
-      });
-      return;
-    }
-
-    if (sub === "lobby-remove") {
-      const channel = interaction.options.getChannel("channel");
-
-      const removed = await removeLobby(guildId, channel.id);
-
-      if (!removed) {
-        await interaction.reply({
-          content: "That voice lobby is already removed",
-          flags: 64
-        });
-        return;
-      }
-
-      await interaction.reply({
-        content: "Voice lobby removed",
-        flags: 64
-      });
-      return;
-    }
-
-    if (sub === "reset") {
-      await resetVoice(guildId);
-      await interaction.reply({
-        content: "Voice configuration reset",
-        flags: 64
-      });
-      return;
-    }
-
-    if (sub === "status") {
-      const status = await getStatus(guildId);
-      await interaction.reply({
-        content: "```json\n" + JSON.stringify(status, null, 2) + "\n```",
-        flags: 64
-      });
-      return;
-    }
+    await interaction.reply({
+      content: added
+        ? "Voice lobby added"
+        : "That voice lobby is already registered",
+      flags: 64
+    });
+    return;
   }
+
+  if (sub === "lobby-remove") {
+    const channel = interaction.options.getChannel("channel");
+
+    // CRITICAL: pass the lobby channel ID verbatim
+    const removed = await removeLobby(guildId, channel.id);
+
+    await interaction.reply({
+      content: removed
+        ? "Voice lobby removed"
+        : "That voice lobby is already removed",
+      flags: 64
+    });
+    return;
+  }
+
+  if (sub === "reset") {
+    await resetVoice(guildId);
+    await interaction.reply({
+      content: "Voice configuration reset",
+      flags: 64
+    });
+    return;
+  }
+
+  if (sub === "status") {
+    const status = await getStatus(guildId);
+    await interaction.reply({
+      content: "```json\n" + JSON.stringify(status, null, 2) + "\n```",
+      flags: 64
+    });
+    return;
+  }
+}
 };

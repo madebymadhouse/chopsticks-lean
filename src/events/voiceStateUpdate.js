@@ -1,29 +1,51 @@
-// src/events/voiceStateUpdate.js
 import { ChannelType, PermissionsBitField } from "discord.js";
 import { loadGuildData, saveGuildData } from "../utils/storage.js";
+import { startVoiceSession, endVoiceSession } from "../tools/leveling/levelingController.js";
 
 export default {
   name: "voiceStateUpdate",
 
   async execute(oldState, newState) {
-    const guild = newState.guild;
+    const guild = newState.guild ?? oldState.guild;
     if (!guild) return;
 
     const guildId = guild.id;
+    const userId = newState.id;
+    const now = Date.now();
+
+    if (!oldState.channelId && newState.channelId) {
+      startVoiceSession(guildId, userId, now);
+    }
+
+    if (oldState.channelId && !newState.channelId) {
+      endVoiceSession(guildId, userId, now);
+    }
+
+    if (
+      oldState.channelId &&
+      newState.channelId &&
+      oldState.channelId !== newState.channelId
+    ) {
+      endVoiceSession(guildId, userId, now);
+      startVoiceSession(guildId, userId, now);
+    }
+
     const data = loadGuildData(guildId);
 
-    // ---------- USER JOINED A CHANNEL ----------
-    if (!oldState.channelId && newState.channelId) {
+    if (
+      newState.channelId &&
+      newState.channelId !== oldState.channelId
+    ) {
       const lobby = data.lobbies?.[newState.channelId];
-      if (!lobby) return;
+      if (!lobby || lobby.enabled !== true) return;
 
       const member = newState.member;
-      const categoryId = lobby.categoryId;
+      if (!member) return;
 
       const channel = await guild.channels.create({
         name: `${member.user.username}'s room`,
         type: ChannelType.GuildVoice,
-        parent: categoryId,
+        parent: lobby.categoryId,
         permissionOverwrites: [
           {
             id: member.id,
@@ -36,17 +58,19 @@ export default {
       });
 
       data.tempChannels[channel.id] = {
-        ownerId: member.id
+        ownerId: member.id,
+        lobbyId: newState.channelId
       };
 
       saveGuildData(guildId, data);
-
       await member.voice.setChannel(channel);
       return;
     }
 
-    // ---------- USER LEFT A CHANNEL ----------
-    if (oldState.channelId && !newState.channelId) {
+    if (
+      oldState.channelId &&
+      oldState.channelId !== newState.channelId
+    ) {
       const temp = data.tempChannels?.[oldState.channelId];
       if (!temp) return;
 
@@ -56,7 +80,7 @@ export default {
       if (channel.members.size === 0) {
         delete data.tempChannels[oldState.channelId];
         saveGuildData(guildId, data);
-        await channel.delete();
+        await channel.delete().catch(() => {});
       }
     }
   }
