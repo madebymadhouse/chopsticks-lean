@@ -1,3 +1,10 @@
-node_modules/
-.env
-data/
+# temp / debug dumps
+*_dump.txt
+*_TREE.txt
+*_index.js.txt
+*_storage.js.txt
+*_voice*.txt
+_runtime.log
+
+# backups
+data.backup.*/

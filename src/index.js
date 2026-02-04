@@ -56,3 +56,4 @@ client.once(Events.ClientReady, async () => {
 });
 
 client.login(process.env.DISCORD_TOKEN);
+S

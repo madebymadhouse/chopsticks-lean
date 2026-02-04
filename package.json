@@ -2,8 +2,19 @@
   "name": "chopsticks",
   "version": "1.0.0",
   "type": "module",
+  "scripts": {
+  "lavalink": "java -jar lavalink/Lavalink.jar --spring.config.location=file:./lavalink/application.yml",
+  "control": "node src/control/controlServer.js",
+  "bot": "node src/index.js",
+  "all": "concurrently \"npm run lavalink\" \"npm run control\" \"npm run bot\""
+
+  },
   "dependencies": {
-    "discord.js": "...",
-    "dotenv": "..."
+    "discord.js": "^14.16.0",
+    "dotenv": "^16.4.5",
+    "lavalink-client": "^2.8.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
