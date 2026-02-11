@@ -56,6 +56,9 @@ These were auto-generated securely:
 - Max queue: 100 songs
 - Max track length: 60 minutes
 - Default volume: 50%
+- Control mode: `MUSIC_CONTROL_MODE=owner|voice`
+- Search providers: `MUSIC_SEARCH_PROVIDERS=scsearch,ytmsearch,ytsearch`
+- Fallback providers: `MUSIC_FALLBACK_PROVIDERS=scsearch`
 
 ### Voice Features
 - STT: Whisper `small` model (CPU)
