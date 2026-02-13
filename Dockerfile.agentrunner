@@ -1,18 +1,43 @@
-# Use a Node.js LTS image as the base
-FROM node:20-alpine
+FROM node:20
 
-# Set the working directory inside the container
+LABEL maintainer="Chopsticks Team"
+LABEL description="Production agent runner with Canvas graphics"
+
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if exists)
-# to leverage Docker cache for npm install
+# Install system dependencies for Canvas
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    python3 \
+    pkg-config \
+    libcairo2-dev \
+    libjpeg-dev \
+    libpango1.0-dev \
+    libgif-dev \
+    libpixman-1-dev \
+    libfreetype6-dev \
+    fontconfig \
+    libfontconfig1-dev \
+    libglib2.0-dev \
+    librsvg2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy dependencies
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install Node dependencies with canvas build
+RUN npm ci --no-optional \
+    && npm rebuild canvas --build-from-source \
+    && npm cache clean --force
 
-# Copy the rest of the application code
+# Copy application
 COPY . .
 
-# Command to run the agentRunner
+# Set environment
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=1024"
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD node -e "console.log('Agent runner healthy')" || exit 1
+
 CMD ["npm", "run", "agents"]
