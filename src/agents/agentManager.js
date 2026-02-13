@@ -121,8 +121,11 @@ export class AgentManager {
     try {
       msg = JSON.parse(String(data));
     } catch {
+      console.log('[AgentManager] Invalid JSON received from agent');
       return;
     }
+    
+    console.log(`[AgentManager] Message received: type=${msg?.type}, agentId=${msg?.agentId || ws.__agentId}`);
 
     if (msg?.type === "hello") return void this.handleHello(ws, msg);
     if (msg?.type === "guilds") return void this.handleGuilds(ws, msg);
