@@ -20,7 +20,13 @@ echo "Using compose file: $COMPOSE_FILE"
 
 COMPOSE_ARGS=(-f "$COMPOSE_FILE")
 if [ "$COMPOSE_FILE" = "docker-compose.production.yml" ]; then
-  COMPOSE_ARGS+=(--profile dashboard)
+  PROFILES="${COMPOSE_PROFILES:-dashboard,monitoring}"
+  IFS=',' read -ra PROFILE_LIST <<< "$PROFILES"
+  for profile in "${PROFILE_LIST[@]}"; do
+    profile="${profile//[[:space:]]/}"
+    [ -n "$profile" ] && COMPOSE_ARGS+=(--profile "$profile")
+  done
+  echo "Active profiles: ${PROFILES}"
 fi
 
 # Check prerequisites
@@ -51,11 +57,6 @@ fi
 # Start services
 echo "Starting services..."
 docker compose "${COMPOSE_ARGS[@]}" up -d --remove-orphans
-
-# Keep production bring-up focused on bot + agents + dashboard
-if [ "$COMPOSE_FILE" = "docker-compose.production.yml" ]; then
-  docker compose -f "$COMPOSE_FILE" stop prometheus >/dev/null 2>&1 || true
-fi
 
 echo ""
 echo "⏳ Waiting for services to be ready..."
