@@ -1,5 +1,6 @@
-import { EmbedBuilder, MessageFlags } from "discord.js";
+import { AttachmentBuilder, EmbedBuilder, MessageFlags } from "discord.js";
 import { Colors } from "../utils/discordOutput.js";
+import { renderEmbedCardPng } from "../render/svgCard.js";
 
 export function sanitizeText(text, max = 1024) {
   const value = String(text ?? "").trim();
@@ -45,12 +46,42 @@ function withFlags(payload, ephemeral = true) {
   };
 }
 
+function svgCardsEnabled() {
+  if (process.env.NODE_ENV === "test") return false;
+  const raw = String(process.env.SVG_CARDS ?? "true").toLowerCase().trim();
+  return raw !== "0" && raw !== "false" && raw !== "off";
+}
+
+async function maybeAttachSvgCard(payload) {
+  if (!svgCardsEnabled()) return payload;
+  if (!payload || typeof payload !== "object") return payload;
+  if (payload.files && Array.isArray(payload.files) && payload.files.length) return payload;
+  const embeds = Array.isArray(payload.embeds) ? payload.embeds : [];
+  if (embeds.length !== 1) return payload;
+
+  let embedObj = embeds[0];
+  try { if (embedObj?.toJSON) embedObj = embedObj.toJSON(); } catch {}
+
+  try {
+    const eb = EmbedBuilder.from(embedObj);
+    if (eb?.data?.image?.url) return payload;
+    const png = await renderEmbedCardPng(eb.data, { width: 960, height: 540 });
+    const fileName = "cs-mod.png";
+    eb.setImage(`attachment://${fileName}`);
+    return { ...payload, embeds: [eb], files: [new AttachmentBuilder(png, { name: fileName })] };
+  } catch (err) {
+    console.warn("[svg-cards:mod] render failed:", err?.message ?? err);
+    return payload;
+  }
+}
+
 export async function replyModEmbed(interaction, payload, { ephemeral = true } = {}) {
+  const bodyPayload = await maybeAttachSvgCard(payload);
   if (interaction.deferred || interaction.replied) {
-    await interaction.editReply(payload);
+    await interaction.editReply(bodyPayload);
     return;
   }
-  const body = withFlags(payload, ephemeral);
+  const body = withFlags(bodyPayload, ephemeral);
   await interaction.reply(body);
 }
 

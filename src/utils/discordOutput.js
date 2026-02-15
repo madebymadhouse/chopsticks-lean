@@ -1,4 +1,5 @@
 import { AttachmentBuilder, EmbedBuilder, MessageFlags } from "discord.js";
+import { renderEmbedCardPng } from "../render/svgCard.js";
 
 // Corporate Colors
 export const Colors = {
@@ -20,8 +21,53 @@ function normalizeEphemeral(ephemeral = true) {
   return ephemeral ? MessageFlags.Ephemeral : undefined;
 }
 
+function svgCardsEnabled() {
+  if (process.env.NODE_ENV === "test") return false;
+  const raw = String(process.env.SVG_CARDS ?? "true").toLowerCase().trim();
+  return raw !== "0" && raw !== "false" && raw !== "off";
+}
+
+function embedHasImage(embedLike) {
+  const e = embedLike && typeof embedLike === "object" ? embedLike : null;
+  const url = e?.data?.image?.url ?? e?.image?.url ?? null;
+  return Boolean(url);
+}
+
+async function maybeAttachSvgCard(payload) {
+  if (!svgCardsEnabled()) return payload;
+  if (!payload || typeof payload !== "object") return payload;
+  if (payload.files && Array.isArray(payload.files) && payload.files.length) return payload; // Don't interfere with existing file outputs.
+  const embeds = Array.isArray(payload.embeds) ? payload.embeds : [];
+  if (embeds.length !== 1) return payload;
+
+  let embedObj = embeds[0];
+  try {
+    if (embedObj?.toJSON) embedObj = embedObj.toJSON();
+  } catch {}
+
+  // Respect existing images (e.g., gather.png cards).
+  try {
+    const eb = EmbedBuilder.from(embedObj);
+    if (embedHasImage(eb)) return payload;
+
+    const png = await renderEmbedCardPng(eb.data, { width: 960, height: 540 });
+    const fileName = "cs-card.png";
+    eb.setImage(`attachment://${fileName}`);
+
+    return {
+      ...payload,
+      embeds: [eb],
+      files: [new AttachmentBuilder(png, { name: fileName })]
+    };
+  } catch (err) {
+    // Never block a response on visuals.
+    console.warn("[svg-cards] render failed:", err?.message ?? err);
+    return payload;
+  }
+}
+
 async function sendInteractionResponse(interaction, payload, ephemeral = true) {
-  const base = { ...payload };
+  const base = await maybeAttachSvgCard({ ...payload });
   const flags = normalizeEphemeral(ephemeral);
 
   if (interaction.deferred) {
