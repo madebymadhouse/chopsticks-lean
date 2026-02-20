@@ -58,6 +58,7 @@ import { checkRateLimit } from "./utils/ratelimit.js";
 import { getRateLimitForCommand } from "./utils/rateLimitConfig.js";
 import { canRunCommand, canRunPrefixCommand } from "./utils/permissions.js";
 import { getPrefixCommands } from "./prefix/registry.js";
+import { checkMetaPerms } from "./prefix/applyMetaPerms.js";
 import { parsePrefixArgs, resolveAliasedCommand, suggestCommandNames } from "./prefix/hardening.js";
 import { loadGuildData } from "./utils/storage.js";
 import { addCommandLog } from "./utils/commandlog.js";
@@ -709,6 +710,13 @@ client.on(Events.MessageCreate, async message => {
 
   const gate = await canRunPrefixCommand(message, cmd.name, cmd);
   if (!gate.ok) return;
+
+  // Enforce slash-command meta.userPerms for prefix path
+  const permCheck = await checkMetaPerms(message, name);
+  if (!permCheck.ok) {
+    await message.reply({ content: `❌ ${permCheck.reason}` });
+    return;
+  }
 
   const prefixStartedAt = Date.now();
   try {
