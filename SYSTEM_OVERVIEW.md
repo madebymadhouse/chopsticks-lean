@@ -1,66 +1,40 @@
 # Chopsticks System Overview
 
-> **Note for agents**: This file belongs in `~/chopsticks/SYSTEM_OVERVIEW.md`.
-> Currently stored in `~/main/chopsticks-context/` because `~/chopsticks` is root-owned.
-
----
-
 ## One Line
 
-Chopsticks is a production Discord bot maintained by goot27, serving the Egg Fried Rice community.
-
----
+Chopsticks is a production Discord bot, open-source and self-hostable.
 
 ## What It Does
 
 | Capability | Technology |
 |------------|-----------|
 | Music playback in Discord voice channels | Lavalink (Java audio server) |
-| Reverse proxy / HTTPS | Caddy |
-| Metrics collection | Prometheus |
-| Observability dashboards | Grafana |
-| Bot logic / commands | Maintained in goot27's source repo |
+| Server management and moderation | discord.js v14, 70+ slash commands |
+| Economy, games, AI commands | PostgreSQL, Redis |
+| Agent Pool (community bot tokens for voice) | WebSocket control plane |
 
----
-
-## Deployment Stack
+## Stack
 
 ```
 Discord API
     ↓
-Chopsticks Bot (source repo, goot27/github)
+Chopsticks Bot (Node.js, discord.js v14)
     ↓
-Lavalink (audio server) ← ~/chopsticks/lavalink/
+Lavalink (audio server)
     ↓
-Caddy (reverse proxy)   ← ~/chopsticks/Caddyfile
-    ↓
-Prometheus + Grafana    ← ~/chopsticks/monitoring/
+PostgreSQL + Redis (state and caching)
 ```
-
----
 
 ## Ecosystem Position
 
-```
-WokSpec ecosystem
-└── Chopsticks (contributor project — goot27)
-    ├── Affiliated but independent
-    ├── Not integrated with core infrastructure
-    └── Maintained and owned by goot27
-```
-
----
+Chopsticks is a WokSpec project. Repo: `wokspec/chopsticks`.
 
 ## Key Contacts
 
-- **Maintainer**: goot27 (`github.com/goot27`)
+- **Maintainer**: ws-sam
 - **Community**: Egg Fried Rice Discord (`discord.gg/B7Bhuherkn`)
-
----
 
 ## For Agents
 
-- This is a **contributor project**. Treat it as independent.
-- The `~/chopsticks` directory is **infrastructure config only**.
-- Bot source code lives in goot27's GitHub repo.
-- Do not modify deployment config without goot27's direction.
+- Source code and infrastructure are in this repo.
+- Read `CLAUDE.md` before making any changes.

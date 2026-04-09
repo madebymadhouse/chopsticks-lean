@@ -9,7 +9,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
 [![GitHub Stars](https://img.shields.io/github/stars/ws-sam/Chopsticks?style=social)](https://github.com/ws-sam/Chopsticks/stargazers)
 
-> **Status — On hold:** Chopsticks is production-stable and fully self-hostable. Active feature development is paused while [ws-sam](https://github.com/ws-sam) focuses on building [WokSpec](https://github.com/WokSpec). Community PRs are still reviewed and merged. Still MIT. Still self-hostable. Contributions welcome. Chopsticks is no longer hosted by goot27; self-hosting is the recommended path.
+> **Status — On hold:** Chopsticks is production-stable and fully self-hostable. Active feature development is paused while [ws-sam](https://github.com/ws-sam) focuses on other [WokSpec](https://github.com/WokSpec) projects. Community PRs are still reviewed and merged. Self-hosting is the recommended path.
 
 ---
 
@@ -37,7 +37,7 @@ Chopsticks is a full-featured Discord bot built on [discord.js v14](https://disc
 
 The flagship feature is the **Agent Pool System**: a community model where multiple Discord bot tokens are pooled, encrypted, and dispatched to voice channels on demand. Servers never manage tokens directly; they consume from shared pools maintained by the community.
 
-**Self-hosting encouraged:** Chopsticks is built for community ownership. It is no longer hosted by goot27, and self-hosting your own instance is the best path for reliability and control.
+**Self-hosting encouraged:** Chopsticks is built for community ownership. Self-hosting your own instance is the best path for reliability and control.
 
 ---
 
@@ -453,7 +453,7 @@ Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full g
 
 Issues labeled [`good first issue`](https://github.com/ws-sam/Chopsticks/labels/good%20first%20issue) are a good starting point.
 
-Chopsticks is part of the [WokSpec](https://github.com/WokSpec) ecosystem — a collection of open source tools and bots built for Discord communities. The project is maintained under [ws-sam](https://github.com/ws-sam). It is no longer hosted by goot27, and self-hosting is the intended deployment model.
+Chopsticks is part of [WokSpec](https://github.com/WokSpec). Self-hosting is the intended deployment model.
 
 ---
 
@@ -461,7 +461,7 @@ Chopsticks is part of the [WokSpec](https://github.com/WokSpec) ecosystem — a 
 
 Do not report security vulnerabilities through public GitHub issues.
 
-See the [WokSpec Global Security Policy](https://github.com/WokSpec/WokDocs/blob/main/SECURITY.md) for the responsible disclosure process, and the [Chopsticks Security Doc](./docs/security.md) for the detailed security model of the agent token system.
+See the [WokSpec Security Policy](https://github.com/wokspec/.github/blob/main/SECURITY.md) for the responsible disclosure process, and the [Chopsticks Security Doc](./docs/security.md) for the agent token security model.
 
 ---
 
@@ -477,6 +477,6 @@ See [LICENSE](LICENSE) for the full text.
 
 <div align="center">
 
-Maintained by [ws-sam](https://github.com/ws-sam) · Originally created by goot27 · Part of the [WokSpec](https://github.com/WokSpec) ecosystem
+Maintained by [ws-sam](https://github.com/ws-sam) · Part of [WokSpec](https://github.com/WokSpec)
 
 </div>

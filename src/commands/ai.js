@@ -20,6 +20,7 @@ import {
   setUserAiKey,
   setGuildAiPersona,
   clearGuildAiPersona,
+  ERAL_API_URL,
 } from "../utils/aiConfig.js";
 import { validateProviderKey } from "../utils/voiceValidation.js";
 import { sanitizeString } from "../utils/validation.js";
@@ -373,7 +374,7 @@ async function handleChat(interaction) {
       }
 
       try {
-        const res = await fetch('https://eral.wokspec.org/api/v1/chat', {
+        const res = await fetch(`${ERAL_API_URL}/v1/chat`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -409,7 +410,7 @@ async function handleChat(interaction) {
 
         const embed = new EmbedBuilder()
           .setColor(0x7c3aed)
-          .setAuthor({ name: 'Eral', iconURL: 'https://eral.wokspec.org/icon.png' })
+          .setAuthor({ name: 'Eral' })
           .setDescription(response.slice(0, 4096))
           .setFooter({ text: 'Powered by Eral · WokSpec AI' });
 

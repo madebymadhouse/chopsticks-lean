@@ -11,7 +11,7 @@ const IV_LENGTH = 16;
 
 export const AI_PROVIDERS = ["eral", "none", "ollama", "anthropic", "openai", "groq"];
 
-export const ERAL_API_URL = 'https://eral.wokspec.org/api';
+export const ERAL_API_URL = process.env.ERAL_API_URL || '';
 
 export function resolveEralKey(env) { return env.ERAL_BOT_KEY ?? null; }
 

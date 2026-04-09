@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * Chopsticks is a public docs site — no user auth required.
  */
 
-const ERAL_API = process.env.ERAL_API_URL ?? 'https://eral.wokspec.org/api';
+const ERAL_API = process.env.ERAL_API_URL ?? '';
 const ERAL_API_KEY = process.env.ERAL_API_KEY ?? '';
 
 export const runtime = 'nodejs';
