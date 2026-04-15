@@ -1,6 +1,6 @@
 # chopsticks-lean
 
-An intentially lean version of the Chopsticks Discord bot built open-source by Mad House ©
+An intentially lean, custom version of the Chopsticks Discord bot built by Mad House ©
 
 > This custom build of Chopsticks is running on Samuel's VPS 
 
