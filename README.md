@@ -1,8 +1,10 @@
 # chopsticks-lean
 
-Lean Discord bot for small communities and cheap VPS hosting.
+An intentially lean version of the Chopsticks Discord bot built open-source by Mad House ©
 
-`chopsticks-lean` is a PostgreSQL/Redis-backed Discord bot focused on moderation, core server tooling, VoiceMaster temp rooms, and custom VC workflows. It is intentionally opinionated: one main bot process, no dashboard, no agents, no music stack, no Lavalink, no web app, and no AI voice orchestration layer.
+> This custom build of Chopsticks is running on Samuel's VPS 
+
+`chopsticks-lean` is a PostgreSQL/Redis-backed Discord bot focused on moderation, core server tooling, custom voice channel temp rooms, and custom community server workflows. It is intentionally lean: one main bot process, no dashboard, no agents, no music stack, no Lavalink, no web app, and no AI voice orchestration layer. A lean version of Chopsticks. 
 
 ## Scope
 
@@ -13,10 +15,10 @@ What this repo is:
 - Custom VC panels and room controls
 - Simple self-hosting on a low-cost VPS
 
-What this repo is not:
-- Music bot
-- Agent platform
-- Dashboard platform
+What this version of Chopsticks does NOT include:
+- Music
+- Agents
+- Dashboard
 - Web app
 - Multi-service voice orchestration system
 
