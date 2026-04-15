@@ -6,7 +6,7 @@ SERVICE_NAME="${SERVICE_NAME:-chopsticks}"
 SYSTEMD_DIR="${SYSTEMD_DIR:-/etc/systemd/system}"
 RUN_USER="${RUN_USER:-$(id -un)}"
 RUN_GROUP="${RUN_GROUP:-$(id -gn)}"
-COMPOSE_PROFILES="${COMPOSE_PROFILES:-dashboard,monitoring,fun}"
+COMPOSE_PROFILES="${COMPOSE_PROFILES:-}"
 
 SUDO=""
 if [ "${EUID:-$(id -u)}" -ne 0 ]; then

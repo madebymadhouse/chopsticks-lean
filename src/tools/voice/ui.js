@@ -14,7 +14,6 @@ import {
 
 import * as VoiceDomain from "./domain.js";
 import { getVoiceState } from "./schema.js";
-import { execute as musicExecute } from "../../commands/music.js";
 import { execute as gameExecute } from "../../commands/game.js";
 import {
   buildVoiceRoomDashboardComponents,
@@ -974,36 +973,10 @@ async function handleLivePanelButton(interaction, parsed) {
   }
 
   if (action === "music") {
-    const ctx = await resolveContext(interaction, parsed.roomChannelId, {
-      requireMembership: true,
-      requireControl: true
-    });
-    if (!ctx.ok) {
-      await interaction.reply({ embeds: [buildErrorEmbed(contextErrorMessage(ctx.error))], ephemeral: true });
-      return true;
-    }
-
-    // Avoid surprising playback: Quick Play is for the room you're currently in.
-    if (interaction.member?.voice?.channelId !== parsed.roomChannelId) {
-      await interaction.reply({ embeds: [buildErrorEmbed("Join this room voice channel to use Quick Play from its dashboard.")], ephemeral: true });
-      return true;
-    }
-
-    const modal = new ModalBuilder()
-      .setCustomId(makeRoomModalCustomId("music", interaction.guildId, parsed.roomChannelId))
-      .setTitle("Quick Play");
-    modal.addComponents(
-      new ActionRowBuilder().addComponents(
-        new TextInputBuilder()
-          .setCustomId("query")
-          .setLabel("Search or URL")
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true)
-          .setMaxLength(200)
-          .setPlaceholder("e.g., never gonna give you up")
-      )
-    );
-    await interaction.showModal(modal).catch(() => {});
+    await interaction.reply({
+      embeds: [buildErrorEmbed("Quick Play is unavailable in the lean build. Custom VC controls remain active.")],
+      ephemeral: true
+    }).catch(() => {});
     return true;
   }
 
@@ -1224,7 +1197,7 @@ async function handleRoomPanelButtonInDm(interaction, parsed) {
 
   if (parsed.kind === "music") {
     await interaction.reply({
-      embeds: [buildErrorEmbed("Quick Play is guild-only. Use the dashboard inside the server, or run `/music play <query>` in the server.")],
+      embeds: [buildErrorEmbed("Quick Play is unavailable in the lean build.")],
       ...maybeEphemeralFlags(interaction)
     }).catch(() => {});
     return true;
@@ -1428,70 +1401,10 @@ export async function handleVoiceUIModal(interaction) {
   }
 
   if (kind === "music") {
-    if (!interaction.inGuild?.() || interaction.guildId !== gid) {
-      await interaction.reply({
-        embeds: [buildErrorEmbed("Quick Play must be used from inside the server.")],
-        ...maybeEphemeralFlags(interaction)
-      }).catch(() => {});
-      return true;
-    }
-
-    if (interaction.member?.voice?.channelId !== rid) {
-      await interaction.reply({
-        embeds: [buildErrorEmbed("Join this room voice channel to use Quick Play from its dashboard.")],
-        ...maybeEphemeralFlags(interaction)
-      }).catch(() => {});
-      return true;
-    }
-
-    // Recommended hardening: only the room owner (or admins) can quick-play from the room dashboard.
-    const ctx = await resolveContext(interaction, rid, { requireMembership: false, requireControl: false });
-    if (!ctx.ok) {
-      await interaction.reply({
-        embeds: [buildErrorEmbed(contextErrorMessage(ctx.error))],
-        ...maybeEphemeralFlags(interaction)
-      }).catch(() => {});
-      return true;
-    }
-    if (!ctx.isOwner && !ctx.isAdmin) {
-      await interaction.reply({
-        embeds: [buildErrorEmbed("Only the room owner (or admins) can use Quick Play from this dashboard.")],
-        ...maybeEphemeralFlags(interaction)
-      }).catch(() => {});
-      return true;
-    }
-
-    const query = String(interaction.fields.getTextInputValue("query") || "").trim();
-    if (!query) {
-      await interaction.reply({
-        embeds: [buildErrorEmbed("Query is empty.")],
-        ...maybeEphemeralFlags(interaction)
-      }).catch(() => {});
-      return true;
-    }
-
-    const wrapped = Object.create(interaction);
-    // Provide a complete options stub so musicExecute() doesn't throw on any
-    // options accessor (getSubcommandGroup is called on line 1 of execute()).
-    wrapped.options = {
-      getSubcommand:      ()     => "play",
-      getSubcommandGroup: ()     => null,
-      getString:          (name) => name === "query" ? query : null,
-      getBoolean:         ()     => null,
-      getInteger:         ()     => null,
-      getNumber:          ()     => null,
-      getUser:            ()     => null,
-      getChannel:         ()     => null,
-      getMember:          ()     => null,
-      getRole:            ()     => null,
-    };
-    // Force all replies to be ephemeral — modal submissions must not produce
-    // public messages in the channel.
-    wrapped.deferReply  = (opts = {}) => interaction.deferReply({ ...opts, flags: MessageFlags.Ephemeral });
-    wrapped.reply       = (payload)   => interaction.reply({ ...(payload || {}), ...maybeEphemeralFlags(interaction) });
-    wrapped.editReply   = (payload)   => interaction.editReply(payload || {});
-    wrapped.followUp    = (payload)   => interaction.followUp({ ...(payload || {}), ...maybeEphemeralFlags(interaction) });
-    await musicExecute(wrapped);
+    await interaction.reply({
+      embeds: [buildErrorEmbed("Quick Play is unavailable in the lean build.")],
+      ...maybeEphemeralFlags(interaction)
+    }).catch(() => {});
     return true;
   }
 

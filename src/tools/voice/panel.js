@@ -136,7 +136,7 @@ export function buildVoiceRoomDashboardComponents(
     controlsDisabled = false,
     includeDmButton = true,
     guildId = null,
-    disableQuickPlay = false,
+    disableQuickPlay = true,
     actorUserId = null
   } = {}
 ) {

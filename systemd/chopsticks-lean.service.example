@@ -1,0 +1,18 @@
+[Unit]
+Description=chopsticks-lean Discord bot
+After=network-online.target postgresql.service redis-server.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=chopsticks
+Group=chopsticks
+WorkingDirectory=/srv/chopsticks-lean
+Environment=NODE_ENV=production
+Environment=STORAGE_DRIVER=postgres
+ExecStart=/usr/bin/npm run bot
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

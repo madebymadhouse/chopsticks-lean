@@ -5,8 +5,8 @@ set -euo pipefail
 # Designed for local dev, servers, and systemd. Safe defaults; no secrets printed.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-COMPOSE_FILE="${COMPOSE_FILE:-$ROOT_DIR/docker-compose.laptop.yml}"
-COMPOSE_PROFILES="${COMPOSE_PROFILES:-dashboard,monitoring,fun}"
+COMPOSE_FILE="${COMPOSE_FILE:-$ROOT_DIR/docker-compose.yml}"
+COMPOSE_PROFILES="${COMPOSE_PROFILES:-}"
 
 cd "$ROOT_DIR"
 
@@ -25,11 +25,13 @@ need_cmd() {
 
 build_compose_args() {
   COMPOSE_ARGS=(-f "$COMPOSE_FILE")
-  IFS=',' read -ra PROFILE_LIST <<< "$COMPOSE_PROFILES"
-  for profile in "${PROFILE_LIST[@]}"; do
-    local trimmed="${profile//[[:space:]]/}"
-    [ -n "$trimmed" ] && COMPOSE_ARGS+=(--profile "$trimmed")
-  done
+  if [ -n "$COMPOSE_PROFILES" ]; then
+    IFS=',' read -ra PROFILE_LIST <<< "$COMPOSE_PROFILES"
+    for profile in "${PROFILE_LIST[@]}"; do
+      local trimmed="${profile//[[:space:]]/}"
+      [ -n "$trimmed" ] && COMPOSE_ARGS+=(--profile "$trimmed")
+    done
+  fi
 }
 
 wait_for_service_ready() {
@@ -85,14 +87,9 @@ case "$cmd" in
     log "preflight validation"
     ./scripts/validate-deployment.sh
 
-    # Ensure the shared cross-project network exists; woksite may or may not be running.
-    docker network inspect woksite_wok_network >/dev/null 2>&1 \
-      || docker network create woksite_wok_network >/dev/null \
-      && log "created woksite_wok_network (shared external network)"
-
     if [ "${CHOPSTICKS_AUTO_BUILD:-false}" = "true" ]; then
       log "building images (CHOPSTICKS_AUTO_BUILD=true)"
-      docker compose "${COMPOSE_ARGS[@]}" build bot agents dashboard funhub
+      docker compose "${COMPOSE_ARGS[@]}" build bot
     fi
 
     log "starting stack ($COMPOSE_FILE) profiles=[$COMPOSE_PROFILES]"
@@ -182,7 +179,7 @@ Commands:
 
 Env toggles:
   COMPOSE_FILE=...                  Override compose file
-  COMPOSE_PROFILES=dashboard,fun... Override enabled profiles
+  COMPOSE_PROFILES=fun...           Optional compose profiles
   CHOPSTICKS_AUTO_BUILD=true|false (default: false)
   CHOPSTICKS_AUTO_DEPLOY_COMMANDS=true|false (default: true)
   CHOPSTICKS_DEPLOY_GLOBAL=true|false (default: false)

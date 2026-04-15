@@ -139,19 +139,6 @@ const coreCommands = [
     keywords: ['ban', 'remove', 'kick', 'punishment', 'moderation']
   },
   {
-    name: 'play',
-    category: 'music',
-    description: 'Play or queue a track in your voice channel',
-    usage: '/music play query:<search or URL>',
-    examples: [
-      '/music play query:Never Gonna Give You Up',
-      '/music play query:https://youtube.com/watch?v=...'
-    ],
-    permissions: [],
-    context: ['guild'],
-    keywords: ['play', 'music', 'song', 'audio', 'youtube', 'spotify']
-  },
-  {
     name: 'purge',
     category: 'moderation',
     description: 'Bulk delete messages with filters',

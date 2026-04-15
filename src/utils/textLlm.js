@@ -1,5 +1,5 @@
 // src/utils/textLlm.js
-// LLM client for the voice-llm microservice.
+// Text generation helper for optional external LLM backends.
 // When guildId is provided, per-guild provider config is consulted first.
 // Default: provider=none returns "" immediately (no paid calls without admin opt-in).
 
@@ -28,7 +28,7 @@ export async function generateText({ prompt, system = "", guildId = null } = {})
       const cfg = await getGuildVoiceConfig(guildId);
       if (cfg.provider === "none") return "";  // No LLM until admin links a provider
 
-      // Build per-guild override to pass to voice-llm service
+      // Build per-guild override to pass to the configured text generation bridge.
       const apiKey = ["anthropic", "openai"].includes(cfg.provider)
         ? await resolveGuildApiKey(guildId)
         : null;
@@ -38,7 +38,7 @@ export async function generateText({ prompt, system = "", guildId = null } = {})
       if (!raw) return "";
       if (!isValidHttpUrl(raw)) throw new Error("llm-url-invalid");
 
-      return await callVoiceLlm(normalizeGenerateUrl(raw), {
+      return await callTextGenerationBridge(normalizeGenerateUrl(raw), {
         prompt, system,
         provider: cfg.provider,
         ...(apiKey   && { apiKey }),
@@ -54,10 +54,10 @@ export async function generateText({ prompt, system = "", guildId = null } = {})
   const raw = String(process.env.TEXT_LLM_URL || process.env.VOICE_ASSIST_LLM_URL || "").trim();
   if (!raw) throw new Error("llm-not-configured");
   if (!isValidHttpUrl(raw)) throw new Error("llm-url-invalid");
-  return callVoiceLlm(normalizeGenerateUrl(raw), { prompt, system });
+  return callTextGenerationBridge(normalizeGenerateUrl(raw), { prompt, system });
 }
 
-async function callVoiceLlm(url, body) {
+async function callTextGenerationBridge(url, body) {
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), 15_000);
   try {
@@ -84,4 +84,3 @@ async function callVoiceLlm(url, body) {
     clearTimeout(t);
   }
 }
-

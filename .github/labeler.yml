@@ -2,14 +2,6 @@
   - changed-files:
     - any-glob-to-any-file: "src/commands/**"
 
-"area:agents":
-  - changed-files:
-    - any-glob-to-any-file: "src/agents/**"
-
-"area:music":
-  - changed-files:
-    - any-glob-to-any-file: "src/commands/music/**"
-
 "area:moderation":
   - changed-files:
     - any-glob-to-any-file: "src/commands/moderation/**"

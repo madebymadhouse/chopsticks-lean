@@ -8,9 +8,8 @@
 const CATEGORY_DEFAULTS = {
   mod:       [3,  30],  // Ban/kick/warn: slow to prevent mass-mod abuse
   admin:     [5,  60],  // Server config: very slow, admin-only
-  music:     [10, 15],  // Queue/play: frequent but bounded
   voice:     [5,  30],  // Voice setup: moderate
-  assistant: [3,  30],  // LLM calls: expensive, strictly bounded
+  ai:        [3,  30],  // LLM calls: expensive, strictly bounded
   fun:       [12, 10],  // Fun/games: standard
   core:      [12, 10],  // Help/info: standard
   economy:   [8,  15],  // Economy actions: moderate
@@ -42,8 +41,6 @@ const COMMAND_OVERRIDES = {
   warn:         [5, 30],
   clearwarns:   [3, 30],
   "model link": [3, 300], // Sensitive: API key linking
-  agent:        [5, 60],
-  agents:       [5, 60],
   antispam:       [2, 30],  // Admin config: slow to prevent rapid changes
   streak:         [5, 60],  // Daily check-in: bounded per user per minute
   "ai-summarize": [3, 60],

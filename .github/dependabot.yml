@@ -10,17 +10,8 @@ updates:
         patterns:
           - "discord.js"
           - "@discordjs/*"
-      lavalink:
-        patterns:
-          - "lavalink-client"
-      prisma:
-        patterns:
-          - "@prisma/*"
-          - "prisma"
       observability:
         patterns:
-          - "@opentelemetry/*"
-          - "@sentry/*"
           - "prom-client"
           - "pino"
           - "pino-pretty"

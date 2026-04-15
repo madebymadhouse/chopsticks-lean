@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-COMPOSE_FILE="docker-compose.production.yml"
+COMPOSE_FILE="docker-compose.yml"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 if [ -x "$SCRIPT_DIR/scripts/ops/chopsticksctl.sh" ]; then
@@ -14,7 +14,7 @@ if [ -x "$SCRIPT_DIR/scripts/ops/chopsticksctl.sh" ]; then
 fi
 
 echo "═══════════════════════════════════════════════════════════════"
-echo "🔄 Chopsticks Docker Restart Script"
+    echo "🔄 chopsticks-lean Docker Restart Script"
 echo "═══════════════════════════════════════════════════════════════"
 echo ""
 
@@ -74,12 +74,6 @@ check_health() {
         echo "⏳ Bot starting..."
     fi
     
-    # Check agents readiness
-    if docker-compose -f "$COMPOSE_FILE" logs agents 2>/dev/null | grep -q "polling"; then
-        echo "✅ Agent runner is ready"
-    else
-        echo "⏳ Agent runner starting..."
-    fi
 }
 
 # Execute action
@@ -137,7 +131,7 @@ case "$ACTION" in
         echo ""
         echo "Next steps:"
         echo "  • Check detailed logs: $0 logs"
-        echo "  • Run test command: /test-chopsticks or /agents status"
+        echo "  • Run test command: /ping or /voice status"
         echo "  • Monitor progress: $0 logs"
         ;;
     

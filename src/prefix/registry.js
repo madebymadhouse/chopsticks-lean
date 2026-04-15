@@ -7,7 +7,6 @@ import {
 
 import metaCommands from "./commands/meta.js";
 import utilityCommands from "./commands/utility.js";
-import musicCommands from "./commands/music.js";
 import aiCommands from "./commands/ai.js";
 import funCommands from "./commands/fun.js";
 import infoCommands from "./commands/info.js";
@@ -25,7 +24,6 @@ import levelCommands from "./commands/levels.js";
 
 const CATEGORY_GROUPS = [
   { category: "meta",          commands: metaCommands,          emoji: "⚙️" },
-  { category: "music",         commands: musicCommands,         emoji: "🎵" },
   { category: "ai",            commands: aiCommands,            emoji: "🤖" },
   { category: "utility",       commands: utilityCommands,       emoji: "🔧" },
   { category: "fun",           commands: funCommands,           emoji: "🎉" },

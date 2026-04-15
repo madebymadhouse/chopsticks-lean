@@ -1,7 +1,6 @@
 import http from "node:http";
 import { timingSafeEqual } from "node:crypto";
 import { Counter, Gauge, Histogram } from "prom-client";
-import { createDebugHandler, createDebugDashboard } from "./debugDashboard.js";
 import { register as appMetricsRegister } from "./metrics.js";
 import { botLogger } from "./modernLogger.js";
 
@@ -10,7 +9,6 @@ let commandCounter = null;
 let commandErrorCounter = null;
 let commandLatency = null;
 let agentGauge = null;
-let agentManager = null; // For debug dashboard
 
 const commandStats = new Map(); // command -> { ok, err, totalMs, count }
 const commandStatsByGuild = new Map(); // guildId -> Map(command -> stats)
@@ -51,10 +49,8 @@ export function isHealthAuthorized(req, token) {
 }
 
 export function startHealthServer(manager = null) {
-  // Store agent manager reference for debug dashboard
   const sec = readHealthSecurityConfig(process.env);
-  if (manager) agentManager = manager;
-  if (manager && sec.debugEnabled) botLogger.info("[health] Debug dashboard enabled at /debug/dashboard");
+  if (manager && sec.debugEnabled) botLogger.info("[health] Debug endpoints enabled.");
   
   if (server) return server;
 
@@ -100,15 +96,7 @@ export function startHealthServer(manager = null) {
       const security = readHealthSecurityConfig(process.env);
       
       // Health check compatibility (`/healthz` primary, `/health` alias).
-      // Returns 200 only after the AgentManager WS is listening (set via startHealthServer(mgr)).
-      // This ensures Docker's service_healthy condition fires only when agents can connect.
       if (url.startsWith("/healthz") || url.startsWith("/health")) {
-        if (!agentManager) {
-          // Still starting up — AgentManager not yet initialized
-          res.writeHead(503, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ ok: false, reason: "starting", ts: Date.now() }));
-          return;
-        }
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ ok: true, ts: Date.now() }));
         return;
@@ -126,7 +114,6 @@ export function startHealthServer(manager = null) {
         return;
       }
 
-      // Debug dashboard (HTML)
       if (url.startsWith("/debug/dashboard")) {
         if (!security.debugEnabled) {
           res.writeHead(404, { "Content-Type": "text/plain" });
@@ -138,13 +125,8 @@ export function startHealthServer(manager = null) {
           res.end("unauthorized");
           return;
         }
-        if (agentManager) {
-          const dashboard = createDebugDashboard(agentManager);
-          await dashboard(req, res);
-        } else {
-          res.writeHead(503, { "Content-Type": "text/plain" });
-          res.end("Dashboard not available - agent manager not initialized");
-        }
+        res.writeHead(410, { "Content-Type": "text/plain" });
+        res.end("Debug dashboard removed in lean build");
         return;
       }
 
@@ -156,7 +138,6 @@ export function startHealthServer(manager = null) {
           return;
         }
         const memMB = process.memoryUsage().rss / 1_048_576;
-        const agentsOnline = agentManager?.liveAgents?.size ?? 0;
 
         // Aggregate delta since last push
         let commandsPerMin = 0;
@@ -184,7 +165,6 @@ export function startHealthServer(manager = null) {
         res.end(JSON.stringify({
           commandsPerMin,
           errorsPerMin,
-          agentsOnline,
           avgLatencyMs: Math.round(avgLatencyMs * 100) / 100,
           memoryMB: Math.round(memMB * 10) / 10,
           topCommand
@@ -204,13 +184,14 @@ export function startHealthServer(manager = null) {
           res.end(JSON.stringify({ error: "unauthorized" }));
           return;
         }
-        if (agentManager) {
-          const handler = createDebugHandler(agentManager);
-          await handler(req, res);
-        } else {
-          res.writeHead(503, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: "Debug endpoint not available - agent manager not initialized" }));
-        }
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({
+          ok: true,
+          pid: process.pid,
+          uptimeSec: Math.floor(process.uptime()),
+          rssMb: Math.round((process.memoryUsage().rss / 1_048_576) * 10) / 10,
+          ts: Date.now()
+        }));
         return;
       }
 

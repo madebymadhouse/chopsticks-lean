@@ -48,7 +48,6 @@ export const data = new SlashCommandBuilder()
         { name: '⚔️ Fight Wins', value: 'fights' },
         { name: '🧠 Trivia Wins', value: 'trivia' },
         { name: '⌨️ Commands Used', value: 'commands' },
-        { name: '🤖 Agent Actions', value: 'agent_actions' },
       )))
   .addSubcommand(s => s
     .setName('achievements')
@@ -108,7 +107,6 @@ export async function execute(interaction) {
           { name: '⛏️ Gather Runs', value: String(stats.gather_runs || 0), inline: true },
           { name: '⚔️ Fight Wins', value: String(stats.fight_wins || 0), inline: true },
           { name: '🧠 Trivia Wins', value: String(stats.trivia_wins || 0), inline: true },
-          { name: '🤖 Agent Actions', value: String(stats.agent_actions_used || 0), inline: true },
           { name: '⌨️ Commands Used', value: Number(stats.commands_used || 0).toLocaleString(), inline: true },
         );
       } else {

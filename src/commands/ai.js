@@ -69,7 +69,7 @@ export function moderateWithKeywords(text) {
 }
 
 const PROVIDER_CHOICES = [
-  { name: "Eral — WokSpec AI (default)", value: "eral" },
+  { name: "Eral (default)", value: "eral" },
   { name: "None — disable AI", value: "none" },
   { name: "Ollama — self-hosted", value: "ollama" },
   { name: "Anthropic / Claude", value: "anthropic" },
@@ -77,7 +77,7 @@ const PROVIDER_CHOICES = [
 ];
 
 const TOKEN_PROVIDER_CHOICES = [
-  { name: "Eral — WokSpec AI", value: "eral" },
+  { name: "Eral", value: "eral" },
   { name: "Anthropic / Claude", value: "anthropic" },
   { name: "OpenAI / GPT", value: "openai" },
   { name: "Ollama — set custom URL", value: "ollama" },
@@ -101,7 +101,6 @@ export const data = new SlashCommandBuilder()
           .setRequired(false)
           .addChoices(
             { name: '🤖 Helper (default)', value: 'helper' },
-            { name: '🎙️ Agent — chat with a deployed agent identity', value: 'agent' },
             { name: '🎲 Dungeon Master', value: 'dm' },
             { name: '💪 Coach', value: 'coach' },
             { name: '🔥 Roast', value: 'roast' },
@@ -284,27 +283,6 @@ async function handleChat(interaction) {
   const userId    = interaction.user.id;
   const channelId = interaction.channelId;
 
-  // Style: agent — route to a deployed agent in this guild via agentManager
-  if (style === "agent") {
-    const mgr = global.agentManager;
-    const agents = mgr ? [...mgr.liveAgents.values()].filter(a => a.ready && a.guildIds?.includes(guildId)) : [];
-    if (!agents.length) {
-      return interaction.reply({
-        content: "🤖 No agents are online in this server. Deploy one with `/agents panel`.",
-        ephemeral: true,
-      });
-    }
-    await interaction.deferReply({ ephemeral: !isPublic });
-    const agent = agents[Math.floor(Math.random() * agents.length)];
-    try {
-      const result = await mgr.request(agent.agentId, "chat", { message, guildId, channelId, userId }).catch(() => null);
-      const reply = result?.reply || result?.content || "…";
-      return interaction.editReply({ content: String(reply).slice(0, 2000) });
-    } catch {
-      return interaction.editReply({ content: "❌ Agent did not respond. Try again." });
-    }
-  }
-
   // Style: prepend a system persona prefix
   const STYLE_PERSONAS = {
     dm:     "You are a dramatic Dungeon Master narrating an epic adventure. Be vivid and immersive.",
@@ -412,7 +390,7 @@ async function handleChat(interaction) {
           .setColor(0x7c3aed)
           .setAuthor({ name: 'Eral' })
           .setDescription(response.slice(0, 4096))
-          .setFooter({ text: 'Powered by Eral · WokSpec AI' });
+          .setFooter({ text: 'Powered by Eral' });
 
         await interaction.editReply({ embeds: [embed] });
       } catch (err) {
