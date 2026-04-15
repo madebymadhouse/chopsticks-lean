@@ -27,9 +27,9 @@ const BROAD_CATEGORIES = [
   {
     key: "voice_audio",
     label: "Voice + Audio",
-    description: "Music, voice lobbies, AI assistant, agents, and pools.",
+    description: "VoiceMaster lobbies, temp rooms, custom VC controls, and audiobooks.",
     emoji: "🎵",
-    taxonomyKeys: [CATEGORIES.MUSIC, CATEGORIES.VOICE, CATEGORIES.AGENTS, CATEGORIES.AI],
+    taxonomyKeys: [CATEGORIES.VOICE, CATEGORIES.AI],
   },
   {
     key: "moderation",
@@ -66,10 +66,8 @@ const CATEGORY_PLAYBOOK = {
     ]
   },
   voice_audio: {
-    useWhen: "You need music playback, VoiceMaster controls, or agent routing.",
+    useWhen: "You need VoiceMaster setup, room controls, or audiobook controls.",
     workflow: [
-      "Verify agent capacity with `/agents status`.",
-      "Start playback with `/music play`.",
       "Configure VC automation with `/voice setup` then `/voice console`."
     ]
   },
@@ -103,7 +101,7 @@ const KNOWN_COMMAND_GROUPS = {
     "help", "commands", "ping", "uptime", "botinfo", "invite",
     "serverinfo", "userinfo", "avatar", "echo", "roleinfo", "remind", "tickets"
   ]),
-  voice_audio: new Set(["music", "voice", "assistant", "agents", "pools"]),
+  voice_audio: new Set(["voice", "audiobook"]),
   moderation: new Set([
     "ban", "unban", "kick", "timeout", "warn", "warnings", "clearwarns",
     "purge", "slowmode", "lock", "unlock", "nick", "softban", "role"
@@ -214,9 +212,7 @@ function formatVariantSummary({ variants, args }) {
 const TAXONOMY_TO_BROAD = {
   [CATEGORIES.INFO]:          "core",
   [CATEGORIES.UTILITY]:       "core",
-  [CATEGORIES.MUSIC]:         "voice_audio",
   [CATEGORIES.VOICE]:         "voice_audio",
-  [CATEGORIES.AGENTS]:        "voice_audio",
   [CATEGORIES.AI]:            "voice_audio",
   [CATEGORIES.MOD]:           "moderation",
   [CATEGORIES.SAFETY]:        "moderation",
@@ -237,7 +233,6 @@ function inferBroadCategory(commandName, explicitCategory = "") {
   if (TAXONOMY_TO_BROAD[explicit]) return TAXONOMY_TO_BROAD[explicit];
 
   // Legacy fallback
-  if (explicit === "music" || explicit === "assistant" || explicit === "pools") return "voice_audio";
   if (explicit === "admin") return "admin_setup";
 
   for (const [category, names] of Object.entries(KNOWN_COMMAND_GROUPS)) {
@@ -357,9 +352,9 @@ function buildMainEmbed({ prefix, commandCount, categories, byCategory }) {
       {
         name: "Start Here",
         value:
-          "1. Deploy capacity with `/agents deploy desired_total:10`.\n" +
-          "2. Check readiness using `/agents status`.\n" +
-          "3. Launch a feature (`/music play`, `/voice setup`, `/game panel`).\n" +
+          "1. Configure the server baseline with `/config` and `/prefix`.\n" +
+          "2. Set up voice features with `/voice setup` or `/voice customs_setup`.\n" +
+          "3. Launch a feature (`/voice console`, `/game panel`, `/tickets setup`).\n" +
           "4. Use category dropdown for deeper help."
       },
       {

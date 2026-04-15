@@ -183,10 +183,6 @@ export default [
       const users   = client.guilds.cache.reduce((n, g) => n + g.memberCount, 0);
       const pingColor = ping < 100 ? 0x57F287 : ping < 250 ? 0xFEE75C : 0xED4245;
 
-      const mgr = global.agentManager;
-      const agentCount   = mgr?.listAgents?.()?.length ?? 0;
-      const sessionCount = (mgr?.listSessions?.()?.length ?? 0) + (mgr?.listAssistantSessions?.()?.length ?? 0);
-
       const embed = new EmbedBuilder()
         .setTitle(`🤖 ${client.user.username}`)
         .setThumbnail(client.user.displayAvatarURL({ size: 256 }))
@@ -197,10 +193,9 @@ export default [
           { name: "📡 Ping",       value: `**${ping}ms**`,           inline: true },
           { name: "⏱️ Uptime",     value: `**${fmtUptime(upSec)}**`, inline: true },
           { name: "💾 Memory",     value: `**${memMb}MB**`,          inline: true },
-          { name: "🤖 Agents",     value: `**${agentCount}** online · **${sessionCount}** sessions`, inline: true },
           { name: "📦 Version",    value: `Node.js ${process.version}`, inline: true },
         )
-        .setFooter({ text: "Chopsticks by WokSpec" })
+        .setFooter({ text: "chopsticks-lean" })
         .setTimestamp();
 
       await reply(message, embed);
@@ -219,12 +214,11 @@ export default [
       const embed = new EmbedBuilder()
         .setTitle("➕ Add Chopsticks to your server")
         .setColor(COLORS.INFO)
-        .setDescription(`[**Click here to invite Chopsticks**](${url})\n\nChopsticks brings music, leveling, economy, AI agents, moderation, and more to your server.`)
+        .setDescription(`[**Click here to invite Chopsticks**](${url})\n\nChopsticks brings moderation, leveling, core server tooling, VoiceMaster, and custom VC features to your server.`)
         .setThumbnail(message.client.user.displayAvatarURL({ size: 256 }))
-        .setFooter({ text: "Chopsticks by WokSpec" });
+        .setFooter({ text: "chopsticks-lean" });
 
       await reply(message, embed);
     }
   },
 ];
-

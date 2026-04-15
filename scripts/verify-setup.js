@@ -1,16 +1,14 @@
 #!/usr/bin/env node
 /**
  * scripts/verify-setup.js
- * Verification script for Chopsticks self-hosters.
- * Checks environment, DB connection, Redis, and Lavalink.
+ * Verification script for chopsticks-lean self-hosters.
+ * Checks environment, PostgreSQL, Redis, and the command surface.
  */
 
 import "dotenv/config";
 import pg from "pg";
 import Redis from "ioredis";
-import http from "http";
-import { readFileSync, existsSync } from "fs";
-import { join } from "path";
+import { existsSync, readdirSync } from "fs";
 
 const colors = {
   reset: "\x1b[0m",
@@ -29,7 +27,7 @@ const error = (msg) => console.log(`${colors.red}✗ ${msg}${colors.reset}`);
 const info = (msg) => console.log(`${colors.blue}ℹ ${msg}${colors.reset}`);
 
 async function main() {
-  print(`\n${colors.bold}${colors.cyan}Chopsticks Verification Tool${colors.reset}\n`);
+  print(`\n${colors.bold}${colors.cyan}chopsticks-lean verification${colors.reset}\n`);
 
   // 1. Node.js version
   const nodeVersion = process.versions.node;
@@ -90,55 +88,41 @@ async function main() {
     }
   }
 
-  // 6. Lavalink check (basic HTTP check)
-  const host = process.env.LAVALINK_HOST || "localhost";
-  const port = process.env.LAVALINK_PORT || 2333;
-  const pass = process.env.LAVALINK_PASSWORD || "youshallnotpass";
-  
-  info(`Checking Lavalink at http://${host}:${port}...`);
-  try {
-    const options = {
-      hostname: host,
-      port: port,
-      path: "/version",
-      method: "GET",
-      headers: { "Authorization": pass },
-      timeout: 3000
-    };
-
-    const req = http.request(options, (res) => {
-      if (res.statusCode === 200) {
-        success("Lavalink is reachable and authenticated");
-      } else {
-        warn(`Lavalink returned status ${res.statusCode}. Check password?`);
-      }
-    });
-
-    req.on("error", (e) => {
-      warn(`Lavalink connection failed: ${e.message}. This is expected if using Docker without exposing ports to host.`);
-    });
-    
-    req.on("timeout", () => {
-      req.destroy();
-      warn("Lavalink connection timed out.");
-    });
-
-    req.end();
-  } catch (e) {
-    warn(`Lavalink check skipped or failed: ${e.message}`);
+  // 6. Lean switches
+  const dashboardEnabled = String(process.env.DASHBOARD_ENABLED ?? "false").toLowerCase() === "true";
+  const agentsEnabled = String(process.env.AGENTS_ENABLED ?? "false").toLowerCase() === "true";
+  const musicEnabled = String(process.env.MUSIC_ENABLED ?? "false").toLowerCase() === "true";
+  if (dashboardEnabled || agentsEnabled || musicEnabled) {
+    warn("Lean switches are not fully disabled. Public lean deployments should keep DASHBOARD_ENABLED=false, AGENTS_ENABLED=false, MUSIC_ENABLED=false.");
+  } else {
+    success("Lean switches are correctly disabled");
   }
 
   // 7. Command registry check
   try {
-    const files = (await import("fs")).readdirSync("src/commands").filter(f => f.endsWith(".js"));
+    const files = readdirSync("src/commands").filter(f => f.endsWith(".js"));
     success(`Command surface: ${files.length} command groups found in src/commands/`);
   } catch (e) {
     error(`Failed to read src/commands: ${e.message}`);
   }
 
+  // 8. Custom VC path check
+  const requiredVoiceFiles = [
+    "src/commands/voice.js",
+    "src/events/voiceStateUpdate.js",
+    "src/prefix/commands/voiceroom.js",
+    "src/tools/voice/customVcsUi.js"
+  ];
+  const missingVoiceFiles = requiredVoiceFiles.filter(file => !existsSync(file));
+  if (missingVoiceFiles.length) {
+    error(`Custom VC path incomplete: missing ${missingVoiceFiles.join(", ")}`);
+  } else {
+    success("Custom VC / VoiceMaster files are present");
+  }
+
   print(`\n${colors.bold}${colors.cyan}Verification complete.${colors.reset}\n`);
   print(`Next steps:`);
-  print(`1. Deploy slash commands:  ${colors.blue}npm run deploy${colors.reset}`);
+  print(`1. Deploy slash commands:  ${colors.blue}npm run deploy:guild${colors.reset} or ${colors.blue}npm run deploy:global${colors.reset}`);
   print(`2. Start the bot:          ${colors.blue}npm start${colors.reset}`);
   print("");
 }

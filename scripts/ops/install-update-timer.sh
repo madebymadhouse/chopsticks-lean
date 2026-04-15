@@ -6,7 +6,7 @@ SERVICE_NAME="${SERVICE_NAME:-chopsticks-auto-update}"
 SYSTEMD_DIR="${SYSTEMD_DIR:-/etc/systemd/system}"
 RUN_USER="${RUN_USER:-$(id -un)}"
 RUN_GROUP="${RUN_GROUP:-$(id -gn)}"
-COMPOSE_PROFILES="${COMPOSE_PROFILES:-dashboard,monitoring,fun}"
+COMPOSE_PROFILES="${COMPOSE_PROFILES:-}"
 UPDATE_INTERVAL="${UPDATE_INTERVAL:-15min}"
 OPS_ENV_FILE="${OPS_ENV_FILE:-$ROOT_DIR/.env.ops}"
 

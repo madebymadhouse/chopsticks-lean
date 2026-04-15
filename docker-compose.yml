@@ -1,0 +1,65 @@
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
+    container_name: "${COMPOSE_PROJECT_NAME:-chopsticks-lean}-bot"
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      STORAGE_DRIVER: postgres
+      NODE_ENV: production
+      DASHBOARD_ENABLED: "false"
+      AGENTS_ENABLED: "false"
+      MUSIC_ENABLED: "false"
+      POSTGRES_URL: ${POSTGRES_URL:-postgresql://chopsticks:changeme@postgres:5432/chopsticks}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://chopsticks:changeme@postgres:5432/chopsticks}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "9100:9100"
+    healthcheck:
+      test: ["CMD", "node", "-e", "const p=process.env.HEALTH_PORT||process.env.METRICS_PORT||9100;require('http').get('http://127.0.0.1:'+p+'/healthz',(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: "${COMPOSE_PROJECT_NAME:-chopsticks-lean}-postgres"
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-chopsticks}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-chopsticks}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-chopsticks}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: "${COMPOSE_PROJECT_NAME:-chopsticks-lean}-redis"
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:

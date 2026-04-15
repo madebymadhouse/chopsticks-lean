@@ -1,14 +1,6 @@
 /**
  * src/utils/commandCategories.js
- * Canonical command category enum — MAP Cycle 1 (Command Taxonomy Lock)
- *
- * All slash and prefix command modules MUST use one of these category strings
- * in their `meta.category` field. This is the locked contract.
- *
- * Rules:
- * - Slash commands: 18 locked core commands only (see COMMAND_TAXONOMY.md)
- * - Prefix commands: unlimited surface, organized by category
- * - No new category added without a MAP cycle decision
+ * Canonical command category enum for the lean public repo.
  */
 
 export const CATEGORIES = Object.freeze({
@@ -17,17 +9,14 @@ export const CATEGORIES = Object.freeze({
   MOD:           "mod",         // Moderation actions (ban, kick, mute, warn)
   SAFETY:        "safety",      // Antinuke, antispam, automod, verification
 
-  // ── Agent & AI ─────────────────────────────────────────────────────────
-  AGENTS:        "agents",      // Agent pool management, deployment
-  AI:            "ai",          // AI utilities, chat, token config, BYOK
+  // ── AI & Voice ─────────────────────────────────────────────────────────
+  AI:            "ai",          // Optional API-backed utilities
 
   // ── Economy & Game ─────────────────────────────────────────────────────
   ECONOMY:       "economy",     // Credits, wallet, shop, trade, bank
   GAME:          "game",        // Game progression, work, gather, craft
   SOCIAL:        "social",      // Reputation, marriage, profile, levels
 
-  // ── Music & Voice ──────────────────────────────────────────────────────
-  MUSIC:         "music",       // Music playback, queue, DJ controls
   VOICE:         "voice",       // Voice lobby, VC management
 
   // ── Community & Fun ────────────────────────────────────────────────────
@@ -77,15 +66,12 @@ export const CATEGORY_MIGRATION = Object.freeze({
   "mod":         CATEGORIES.MOD,
   "economy":     CATEGORIES.ECONOMY,
   "game":        CATEGORIES.GAME,
-  "music":       CATEGORIES.MUSIC,
   "voice":       CATEGORIES.VOICE,
   "ai":          CATEGORIES.AI,
-  "agents":      CATEGORIES.AGENTS,
   "media":       CATEGORIES.MEDIA,
   "entertainment": CATEGORIES.ENTERTAINMENT,
   "community":   CATEGORIES.COMMUNITY,
   "info":        CATEGORIES.INFO,
-  "pools":       CATEGORIES.AGENTS,   // pools are part of agent management
   "server":      CATEGORIES.ADMIN,    // server config = admin
   "internal":    CATEGORIES.INTERNAL,
 });

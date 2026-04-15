@@ -5,9 +5,9 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 LOCK_FILE="${LOCK_FILE:-/tmp/chopsticks-auto-update.lock}"
 REMOTE="${AUTO_UPDATE_REMOTE:-private}"
 BRANCH="${AUTO_UPDATE_BRANCH:-main}"
-COMPOSE_FILE="${COMPOSE_FILE:-$ROOT_DIR/docker-compose.production.yml}"
-PROFILES="${COMPOSE_PROFILES:-dashboard,monitoring,fun}"
-SERVICES="${AUTO_UPDATE_SERVICES:-bot agents dashboard funhub}"
+COMPOSE_FILE="${COMPOSE_FILE:-$ROOT_DIR/docker-compose.yml}"
+PROFILES="${COMPOSE_PROFILES:-}"
+SERVICES="${AUTO_UPDATE_SERVICES:-bot}"
 RUN_GATES="${AUTO_UPDATE_RUN_GATES:-true}"
 DRY_RUN="${AUTO_UPDATE_DRY_RUN:-false}"
 WEBHOOK_URL="${AUTO_UPDATE_WEBHOOK_URL:-}"
@@ -70,12 +70,14 @@ if ! git remote get-url "$REMOTE" >/dev/null 2>&1; then
   exit 1
 fi
 
-IFS=',' read -ra PROFILE_LIST <<< "$PROFILES"
 COMPOSE_ARGS=(-f "$COMPOSE_FILE")
-for profile in "${PROFILE_LIST[@]}"; do
-  trimmed="${profile//[[:space:]]/}"
-  [ -n "$trimmed" ] && COMPOSE_ARGS+=(--profile "$trimmed")
-done
+if [ -n "$PROFILES" ]; then
+  IFS=',' read -ra PROFILE_LIST <<< "$PROFILES"
+  for profile in "${PROFILE_LIST[@]}"; do
+    trimmed="${profile//[[:space:]]/}"
+    [ -n "$trimmed" ] && COMPOSE_ARGS+=(--profile "$trimmed")
+  done
+fi
 
 LOCAL_SHA="$(git rev-parse HEAD)"
 

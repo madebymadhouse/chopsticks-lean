@@ -18,10 +18,14 @@ data/
 .env
 .env.*
 !.env.example
-!.env.comprehensive.example
 
 # node
 node_modules/
+
+# local workspace artifacts
+.codex
+.DS_Store
+Thumbs.db
 
 # web (Next.js site)
 web/.next/

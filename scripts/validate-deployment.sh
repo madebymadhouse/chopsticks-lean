@@ -4,7 +4,7 @@
 set -e
 
 echo "===================================="
-echo "Chopsticks Pre-Deploy Validation"
+echo "chopsticks-lean pre-deploy validation"
 echo "===================================="
 echo
 
@@ -20,9 +20,8 @@ WARNINGS=0
 # Check 1: Node.js syntax
 echo "🔍 Checking JavaScript syntax..."
 node --check src/index.js 2>&1 || { echo -e "${RED}✗ index.js has syntax errors${NC}"; ERRORS=$((ERRORS+1)); }
-node --check src/agents/agentManager.js 2>&1 || { echo -e "${RED}✗ agentManager.js has syntax errors${NC}"; ERRORS=$((ERRORS+1)); }
-node --check src/agents/agentRunner.js 2>&1 || { echo -e "${RED}✗ agentRunner.js has syntax errors${NC}"; ERRORS=$((ERRORS+1)); }
-node --check src/utils/resourceMonitor.js 2>&1 || { echo -e "${RED}✗ resourceMonitor.js has syntax errors${NC}"; ERRORS=$((ERRORS+1)); }
+node --check src/commands/voice.js 2>&1 || { echo -e "${RED}✗ voice.js has syntax errors${NC}"; ERRORS=$((ERRORS+1)); }
+node --check src/events/voiceStateUpdate.js 2>&1 || { echo -e "${RED}✗ voiceStateUpdate.js has syntax errors${NC}"; ERRORS=$((ERRORS+1)); }
 
 if [ $ERRORS -eq 0 ]; then
   echo -e "${GREEN}✓ All syntax checks passed${NC}"
@@ -43,22 +42,8 @@ else
     ERRORS=$((ERRORS+1))
   fi
   
-  if [ -z "$AGENT_TOKEN_KEY" ]; then
-    echo -e "${RED}✗ AGENT_TOKEN_KEY not set${NC}"
-    ERRORS=$((ERRORS+1))
-  elif [ ${#AGENT_TOKEN_KEY} -ne 64 ]; then
-    echo -e "${RED}✗ AGENT_TOKEN_KEY must be 64 characters (32 bytes hex)${NC}"
-    ERRORS=$((ERRORS+1))
-  fi
-  
   if [ -z "$POSTGRES_URL" ] && [ -z "$DATABASE_URL" ]; then
     echo -e "${YELLOW}⚠ No database connection string found (set POSTGRES_URL or DATABASE_URL)${NC}"
-    WARNINGS=$((WARNINGS+1))
-  fi
-  
-  # Lavalink is optional; production compose defaults can supply it.
-  if [ -z "$LAVALINK_HOST" ] && [ -z "$LAVALINK_URL" ]; then
-    echo -e "${YELLOW}⚠ Lavalink not configured via env (music may not work unless compose defaults provide it)${NC}"
     WARNINGS=$((WARNINGS+1))
   fi
   
@@ -90,7 +75,7 @@ fi
 echo
 echo "🔍 Checking port availability..."
 if command -v nc &> /dev/null; then
-  for PORT in 8787 2333 5432 6379; do
+  for PORT in 5432 6379 8080; do
     if nc -z localhost $PORT 2>/dev/null; then
       echo -e "${YELLOW}⚠ Port $PORT already in use${NC}"
       WARNINGS=$((WARNINGS+1))
@@ -112,14 +97,9 @@ if [ ! -r package.json ]; then
   ERRORS=$((ERRORS+1))
 fi
 
-if [ ! -x scripts/deploy-hetzner.sh ]; then
-  echo -e "${YELLOW}⚠ deploy-hetzner.sh not executable${NC}"
-  chmod +x scripts/deploy-hetzner.sh 2>/dev/null || WARNINGS=$((WARNINGS+1))
-fi
-
-if [ ! -x scripts/monitor-resources.sh ]; then
-  echo -e "${YELLOW}⚠ monitor-resources.sh not executable${NC}"
-  chmod +x scripts/monitor-resources.sh 2>/dev/null || WARNINGS=$((WARNINGS+1))
+if [ ! -x scripts/stack-up.sh ]; then
+  echo -e "${YELLOW}⚠ stack-up.sh not executable${NC}"
+  chmod +x scripts/stack-up.sh 2>/dev/null || WARNINGS=$((WARNINGS+1))
 fi
 
 # Check 6: Dependencies
@@ -132,22 +112,16 @@ else
   echo -e "${GREEN}✓ node_modules exists${NC}"
 fi
 
-# Check 7: Database agent tokens
+# Check 7: Database connectivity
 echo
-echo "🔍 Checking agent configuration..."
+echo "🔍 Checking database connectivity..."
 if [ -f .env ]; then
   source .env 2>/dev/null || true
   if [ "$STORAGE_DRIVER" = "postgres" ] && [ -n "$DATABASE_URL" ]; then
     if command -v docker &> /dev/null && docker compose ps postgres 2>/dev/null | grep -q "Up"; then
-      AGENT_COUNT=$(docker exec chopsticks-postgres psql -U ${POSTGRES_USER:-chopsticks} -t -c "SELECT COUNT(*) FROM agent_bots WHERE status='active';" 2>/dev/null | tr -d ' ' || echo "0")
-      if [ "$AGENT_COUNT" = "0" ]; then
-        echo -e "${YELLOW}⚠ No active agents in database${NC}"
-        WARNINGS=$((WARNINGS+1))
-      else
-        echo -e "${GREEN}✓ Found $AGENT_COUNT active agent(s) in database${NC}"
-      fi
+      echo -e "${GREEN}✓ PostgreSQL container is running${NC}"
     else
-      echo -e "${YELLOW}⚠ PostgreSQL not running, skipping agent check${NC}"
+      echo -e "${YELLOW}⚠ PostgreSQL not running, skipping database check${NC}"
       WARNINGS=$((WARNINGS+1))
     fi
   fi

@@ -46,11 +46,9 @@ function categorize(commands) {
     mod: new Set(["ban","unban","kick","timeout","purge","slowmode","warn","warnings","clearwarns","lock","unlock","nick","softban","role"]),
     util: new Set(["ping","uptime","help","serverinfo","userinfo","avatar","roleinfo","botinfo","invite","echo"]),
     fun: new Set(["8ball","coinflip","roll","choose","fun"]),
-    admin: new Set(["config","prefix","alias","agents","reactionroles","levels","automations","setup","modlogs"]),
-    music: new Set(["music"]),
+    admin: new Set(["config","prefix","alias","reactionroles","levels","automations","setup","modlogs"]),
     voice: new Set(["voice","welcome","autorole"]),
     tools: new Set(["poll","giveaway","remind","starboard","tickets"]),
-    assistant: new Set(["assistant"])
   };
   const out = new Map();
   for (const c of commands.values()) {

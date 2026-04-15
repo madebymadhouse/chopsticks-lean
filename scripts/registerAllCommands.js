@@ -30,21 +30,14 @@ const categoryMap = {
   'unlock': 'moderation', 'slowmode': 'moderation', 'mute': 'moderation',
   'unmute': 'moderation', 'softban': 'moderation',
   
-  // Voice & Audio
-  'play': 'voice', 'pause': 'voice', 'resume': 'voice', 'skip': 'voice',
-  'stop': 'voice', 'queue': 'voice', 'nowplaying': 'voice', 'shuffle': 'voice',
-  'loop': 'voice', 'volume': 'voice', 'seek': 'voice', 'join': 'voice',
-  'leave': 'voice', 'radio': 'voice',
+  // Voice
+  'voice': 'voice', 'audiobook': 'voice',
   
   // Admin & Setup
   'setup': 'admin', 'config': 'admin', 'prefix': 'admin', 'setwelcome': 'admin',
   'setlogs': 'admin', 'autorole': 'admin', 'automations': 'admin',
   'customcommand': 'admin', 'custom': 'admin', 'alias': 'admin',
   'logs': 'admin', 'modlog': 'admin', 'settings': 'admin',
-  
-  // Agent/Advanced
-  'agent': 'advanced', 'agents': 'advanced', 'assistant': 'advanced',
-  'persona': 'advanced', 'task': 'advanced',
   
   // Utility
   'avatar': 'utility', 'userinfo': 'utility', 'serverinfo': 'utility',

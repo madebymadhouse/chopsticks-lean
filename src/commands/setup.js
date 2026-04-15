@@ -189,7 +189,6 @@ function buildComponents(userId, channelId) {
       { label: "⚡ Leveling: Relaxed Preset", value: "leveling_relaxed", description: "Slow, casual XP progression" },
       { label: "⚡ Leveling: Grind Preset", value: "leveling_grind", description: "Fast, competitive XP progression" },
       { label: "⚡ Disable Leveling", value: "leveling_off", description: "Turn off guild XP/leveling system" },
-      { label: "🎭 Enable Agent Actions", value: "actions_defaults", description: "Enable all default agent economy actions" },
       { label: "🎮 Enable Fun Commands", value: "fun_on", description: "Allow /social, /card, /trivia, /casino in this server" },
     );
 
@@ -424,27 +423,6 @@ export async function handleSelect(interaction) {
       await upsertGuildXpConfig(guildId, { enabled: false });
       note = "Leveling system disabled.";
     } catch (e) { note = `Leveling config error: ${e.message}`; }
-  } else if (action === "actions_defaults") {
-    try {
-      const { getPool } = await import('../utils/storage_pg.js');
-      const pg = getPool();
-      const ACTION_DEFAULTS = [
-        { action_type: 'air_horn', name: 'Air Horn', description: 'Agent plays an air horn', cost: 50, cooldown_s: 60 },
-        { action_type: 'rickroll', name: 'Rickroll', description: 'Agent plays Never Gonna Give You Up', cost: 75, cooldown_s: 120 },
-        { action_type: 'say_message', name: 'Say Message', description: 'Agent speaks a message via TTS', cost: 100, cooldown_s: 120 },
-        { action_type: 'play_sound', name: 'Play Sound', description: 'Agent plays a sound clip', cost: 150, cooldown_s: 300 },
-        { action_type: 'summon_dj', name: 'Summon DJ', description: 'Agent joins as DJ for 5 minutes', cost: 200, cooldown_s: 600 },
-      ];
-      for (const a of ACTION_DEFAULTS) {
-        await pg.query(
-          `INSERT INTO guild_agent_actions (guild_id, action_type, name, description, cost, cooldown_s, enabled, created_at)
-           VALUES ($1,$2,$3,$4,$5,$6,true,$7)
-           ON CONFLICT (guild_id, action_type) DO NOTHING`,
-          [guildId, a.action_type, a.name, a.description, a.cost, a.cooldown_s, Date.now()]
-        ).catch(() => {});
-      }
-      note = "Default agent actions enabled (5 actions). Configure costs in `/actions admin` or the dashboard.";
-    } catch (e) { note = `Actions setup error: ${e.message}`; }
   } else if (action === "fun_on") {
     const funCmds = ['social', 'card', 'trivia', 'casino', 'gather', 'fight'];
     try {
