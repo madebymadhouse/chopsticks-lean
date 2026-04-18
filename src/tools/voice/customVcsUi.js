@@ -154,38 +154,33 @@ async function canManageRoom(interaction, roomRecord, cfg, guildCtx = null) {
 }
 
 function panelEmbed({ cfg }) {
-  const enabled = cfg.enabled ? "Enabled" : "Disabled";
-  const modeLine = cfg.enabled
-    ? "Click **Request Custom VC** to start. You will be prompted in DM by default."
-    : "An admin must enable Custom VCs first (`/voice customs_setup enabled:true`).";
+  const isEnabled = cfg.enabled;
+  const statusLine = isEnabled
+    ? "Click **Create Room** to set up your personal voice channel."
+    : "Custom VCs are currently disabled. An admin must enable them first.";
 
   return new EmbedBuilder()
-    .setTitle("Custom VCs")
+    .setColor(0xCC3300)
+    .setTitle("Voice Rooms")
     .setDescription(
       [
-        modeLine,
+        statusLine,
         "",
-        "**What you can set:**",
-        "• Name",
-        "• Public or private",
-        "• Guestlist (private)",
-        "• VC size (user limit)",
-        "• Bitrate (within server limits)",
-        "• Deny specific users from joining or speaking",
+        "**Room setup**",
+        "Name your room, set a size limit, and choose public or private — all in one step.",
         "",
-        "**Public**: anyone can join.",
-        "**Private**: only you, your guestlist, and Voice Mods can join.",
+        "**Public** — anyone can join.",
+        "**Private** — invite-only. Only users you whitelist can connect.",
         "",
-        "**Disclaimer**",
-        "Server rules still apply. Voice Mods may join any Custom VC when needed.",
-        "Customs are deleted when the host leaves."
+        "Your room closes automatically 5 seconds after the last person leaves.",
+        "Server rules apply inside all rooms."
       ].join("\n")
     )
     .addFields(
-      { name: "Status", value: enabled, inline: true },
-      { name: "Max Rooms Per User", value: String(cfg.maxRoomsPerUser || 1), inline: true }
+      { name: "Status", value: isEnabled ? "Active" : "Disabled", inline: true },
+      { name: "Rooms Per User", value: String(cfg.maxRoomsPerUser || 1), inline: true }
     )
-    .setFooter({ text: "In development" });
+    .setFooter({ text: "Mad House  •  Voice Rooms" });
 }
 
 function panelComponents({ disabled = false } = {}) {
@@ -193,12 +188,13 @@ function panelComponents({ disabled = false } = {}) {
     new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(id("req"))
-        .setLabel("Request Custom VC")
+        .setLabel("Create Room")
         .setStyle(ButtonStyle.Primary)
-        .setDisabled(disabled)
-    ),
-    new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId(id("help")).setLabel("How It Works").setStyle(ButtonStyle.Secondary)
+        .setDisabled(disabled),
+      new ButtonBuilder()
+        .setCustomId(id("help"))
+        .setLabel("How It Works")
+        .setStyle(ButtonStyle.Secondary)
     )
   ];
 }
@@ -248,25 +244,34 @@ function makeManageButtonRow({ guildId, channelId, ownerId, page = "main" }) {
   ];
 }
 
+function buildManagePayload({ guildId, channelId, ownerId, record, channel, cfg, page = "main", note = "" }) {
+  const embed = roomSummaryEmbed({ channel, record, cfg });
+  if (note) embed.addFields({ name: "Note", value: String(note).slice(0, 1024), inline: false });
+  return {
+    embeds: [embed],
+    components: manageComponents({ guildId, channelId, ownerId, record, page })
+  };
+}
+
 function createRequestModal(guildId) {
   const modal = new ModalBuilder()
     .setCustomId(id("modal", "create", String(guildId || "")))
-    .setTitle("Custom VC Request");
+    .setTitle("Create Voice Room");
 
   modal.addComponents(
     new ActionRowBuilder().addComponents(
       new TextInputBuilder()
         .setCustomId("name")
-        .setLabel("Channel Name")
+        .setLabel("Room Name")
         .setStyle(TextInputStyle.Short)
         .setRequired(false)
         .setMaxLength(90)
-        .setPlaceholder("e.g., ChillZone")
+        .setPlaceholder("e.g., Chill Zone (default: your name)")
     ),
     new ActionRowBuilder().addComponents(
       new TextInputBuilder()
         .setCustomId("limit")
-        .setLabel("VC Size (0 = unlimited)")
+        .setLabel("User Limit (0 = unlimited)")
         .setStyle(TextInputStyle.Short)
         .setRequired(false)
         .setPlaceholder("e.g., 10")
@@ -274,12 +279,12 @@ function createRequestModal(guildId) {
     ),
     new ActionRowBuilder().addComponents(
       new TextInputBuilder()
-        .setCustomId("bitrate")
-        .setLabel("Bitrate kbps (blank = default)")
+        .setCustomId("privacy")
+        .setLabel("Privacy (public / private)")
         .setStyle(TextInputStyle.Short)
         .setRequired(false)
-        .setPlaceholder("e.g., 64")
-        .setMaxLength(4)
+        .setPlaceholder("public  (leave blank for public)")
+        .setMaxLength(10)
     )
   );
 
@@ -863,25 +868,21 @@ export async function handleCustomVcButton(interaction) {
 
     const channel = created.channel;
     const roomRecord = created.record;
-    const embed = new EmbedBuilder()
-      .setTitle("Custom VC Created")
-      .setDescription(
-        [
-          `Created <#${channel.id}> (${roomRecord.privacy}).`,
-          roomRecord.privacy === "private" ? "Next: open controls to set your guestlist." : ""
-        ].filter(Boolean).join("\n")
-      )
-      .setColor(0x22c55e);
+    const inVc = created.member?.voice?.channelId === channel.id;
+    const note = inVc ? "" : `Join your room: <#${channel.id}>`;
+    const payload = buildManagePayload({
+      guildId: created.guild.id,
+      channelId: channel.id,
+      ownerId: roomRecord.ownerId,
+      record: roomRecord,
+      channel,
+      cfg: created.cfg,
+      page: "main",
+      note
+    });
 
-    await interaction.update({
-      embeds: [embed],
-      components: makeManageButtonRow({ guildId: created.guild.id, channelId: channel.id, ownerId: roomRecord.ownerId })
-    }).catch(async () => {
-      await interaction.reply({
-        embeds: [embed],
-        components: makeManageButtonRow({ guildId: created.guild.id, channelId: channel.id, ownerId: roomRecord.ownerId }),
-        ...inGuildFlags(interaction)
-      }).catch(() => {});
+    await interaction.update(payload).catch(async () => {
+      await interaction.reply({ ...payload, ...inGuildFlags(interaction) }).catch(() => {});
     });
 
     return true;
@@ -1138,44 +1139,48 @@ export async function handleCustomVcModal(interaction) {
 
     const name = interaction.fields.getTextInputValue("name");
     const limit = interaction.fields.getTextInputValue("limit");
-    const bitrate = interaction.fields.getTextInputValue("bitrate");
+    const privacyRaw = interaction.fields.getTextInputValue("privacy").trim().toLowerCase();
+    const privacy = privacyRaw === "private" ? "private" : "public";
 
-    const n = nonce();
-    pending.set(n, {
+    // Defer ephemerally so we can do async work
+    await interaction.deferReply({ ephemeral: true }).catch(() => {});
+
+    const created = await createRoomForUser(interaction.client, {
       guildId: String(guildId),
       userId: interaction.user.id,
       name: safeName(name, ""),
       limit: String(limit || "").trim(),
-      bitrateKbps: String(bitrate || "").trim(),
-      createdAt: Date.now(),
-      expiresAt: Date.now() + PENDING_TTL_MS
+      bitrateKbps: "",
+      privacy
     });
 
-    const ctx = await resolveGuildCtx(interaction, guildId);
-    const promptEmbed = privacyPromptEmbed({ guildName: ctx?.guild?.name || "", requestedName: name });
-    const promptComponents = privacyPromptComponents(n, interaction.user.id);
+    if (!created.ok) {
+      const embed = new EmbedBuilder()
+        .setColor(0xef4444)
+        .setTitle("Could Not Create Room")
+        .setDescription(created.detail || created.error || "Unknown error.");
+      if (created.channelId) embed.addFields({ name: "Your Existing Room", value: `<#${created.channelId}>` });
+      await interaction.editReply({ embeds: [embed] }).catch(() => {});
+      return true;
+    }
 
-    // DM first (best-effort).
-    const dmSent = await interaction.user
-      .send({ embeds: [promptEmbed], components: promptComponents })
-      .then(() => true)
-      .catch(() => false);
+    const channel = created.channel;
+    const roomRecord = created.record;
+    const inVc = created.member?.voice?.channelId === channel.id;
+    const note = inVc ? "" : `Join your room: <#${channel.id}>`;
 
-    // Always provide an in-server fallback prompt as well (ephemeral).
-    const fallback = new EmbedBuilder()
-      .setTitle("Choose Privacy")
-      .setDescription(
-        dmSent
-          ? "Check your DMs to finish creating your Custom VC. If you did not receive a DM, use the buttons below."
-          : "I could not DM you. Use the buttons below to finish creating your Custom VC."
-      )
-      .setColor(dmSent ? 0x22c55e : 0xf59e0b);
-
-    await interaction.reply({
-      embeds: [fallback, promptEmbed],
-      components: promptComponents,
-      ...inGuildFlags(interaction)
-    });
+    await interaction.editReply(
+      buildManagePayload({
+        guildId: created.guild.id,
+        channelId: channel.id,
+        ownerId: roomRecord.ownerId,
+        record: roomRecord,
+        channel,
+        cfg: created.cfg,
+        page: "main",
+        note
+      })
+    ).catch(() => {});
     return true;
   }
 

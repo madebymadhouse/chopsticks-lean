@@ -221,6 +221,32 @@ export function buildVoiceRoomDashboardComponents(
         .setEmoji("📖")
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(disabled)
+    ),
+    new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId(makePrivId("kick_member"))
+        .setLabel("Kick")
+        .setEmoji("👢")
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(disabled || controlsDisabled),
+      new ButtonBuilder()
+        .setCustomId(makePrivId("ban_member"))
+        .setLabel("Ban")
+        .setEmoji("🔨")
+        .setStyle(ButtonStyle.Danger)
+        .setDisabled(disabled || controlsDisabled),
+      new ButtonBuilder()
+        .setCustomId(makePrivId("whitelist_member"))
+        .setLabel("Whitelist")
+        .setEmoji("✅")
+        .setStyle(ButtonStyle.Success)
+        .setDisabled(disabled || controlsDisabled),
+      new ButtonBuilder()
+        .setCustomId(makePrivId("unban_member"))
+        .setLabel("Unban")
+        .setEmoji("♻️")
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(disabled || controlsDisabled)
     )
   ];
 }

@@ -30,7 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY package*.json ./
 
 # Install Node dependencies with canvas build
-RUN npm ci --no-optional \
+RUN npm install \
     && npm rebuild canvas --build-from-source \
     && npm cache clean --force
 

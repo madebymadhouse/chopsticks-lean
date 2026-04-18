@@ -55,11 +55,9 @@ import { registerAllCommands } from "../scripts/registerAllCommands.js";
 import { handleButton as handlePurgeButton } from "./commands/purge.js";
 import { handleButton as handleGiveawayButton } from "./commands/giveaway.js";
 import { handleButton as handleBackupButton } from "./commands/backup.js";
-import { handleButton as handlePetButton } from "./commands/pet.js";
 import { handleButton as handleGameButton, handleSelect as handleGameSelect } from "./commands/game.js";
 import { handleButton as handleQuestsButton } from "./commands/quests.js";
 import { handleButton as handleCraftButton, handleSelect as handleCraftSelect } from "./commands/craft.js";
-import { handleButton as handleTriviaButton, handleSelect as handleTriviaSelect } from "./commands/trivia.js";
 import { handleButton as handleSetupButton, handleSelect as handleSetupSelect } from "./commands/setup.js";
 import { handleButton as handleTicketsButton, handleSelect as handleTicketsSelect } from "./commands/tickets.js";
 import { handleButton as handleTutorialsButton, handleSelect as handleTutorialsSelect } from "./commands/tutorials.js";
@@ -252,40 +250,29 @@ client.once(Events.ClientReady, async () => {
     botLogger.warn({ err }, `⚠️  Help registry initialization failed`);
   }
 
-  // Rotating bot presence — cycles every 20s, prefix-command focused with live stats
+  // Rotating bot presence
   let presenceTimer = null;
   let _presenceTick = 0;
   try {
     const enabled = String(process.env.BOT_PRESENCE_ENABLED ?? "true").toLowerCase() !== "false";
     if (enabled && client.user) {
       const botStatus = String(process.env.BOT_PRESENCE_STATUS || "online");
-
-      function buildActivities() {
-        const guilds  = client.guilds.cache.size;
-        const cmdCount = 162; // prefix command count (static — avoids async in timer)
-        const activities = [
-          { name: `!help — ${cmdCount} prefix commands`,      type: ActivityType.Playing   },
-          { name: `${guilds} server${guilds !== 1 ? "s" : ""} | !help`, type: ActivityType.Watching },
-          { name: `!rank — check your XP & level`,            type: ActivityType.Playing   },
-          { name: `!top — XP leaderboard`,                    type: ActivityType.Competing },
-          { name: `!blackjack — wager credits`,               type: ActivityType.Playing   },
-        ];
-        activities.push({ name: "VoiceMaster temp rooms", type: ActivityType.Watching });
-        activities.push({ name: "Moderation + server tools", type: ActivityType.Playing });
-        return activities;
-      }
+      const activities = [
+        { name: "!help", type: ActivityType.Playing },
+        { name: "A leaner version of Chopsticks bot", type: ActivityType.Watching },
+        { name: "/ticket for support", type: ActivityType.Watching },
+      ];
 
       function rotatePresence() {
         if (!client.isReady()) return;
         try {
-          const acts = buildActivities();
-          _presenceTick = (_presenceTick + 1) % acts.length;
-          client.user.setPresence({ activities: [acts[_presenceTick]], status: botStatus });
+          _presenceTick = (_presenceTick + 1) % activities.length;
+          client.user.setPresence({ activities: [activities[_presenceTick]], status: botStatus });
         } catch {}
       }
 
       rotatePresence();
-      presenceTimer = setInterval(rotatePresence, 20_000);
+      presenceTimer = setInterval(rotatePresence, 30_000);
       presenceTimer.unref();
     }
   } catch {}
@@ -312,6 +299,22 @@ client.once(Events.ClientReady, async () => {
     return;
   }
   botLogger.info("Lean runtime initialized without removed optional stacks.");
+
+  // Load persistent scheduled messages (water reminders, roasts, polls, custom)
+  try {
+    const { loadAllScheduledMessages } = await import('./utils/scheduledMessages.js');
+    await loadAllScheduledMessages(client);
+  } catch (err) {
+    botLogger.warn({ err }, 'scheduledMessages: startup load failed');
+  }
+
+  // Start ticket auto-close scanner
+  try {
+    const { startTicketAutoClose } = await import('./utils/ticketAutoClose.js');
+    startTicketAutoClose(client);
+  } catch (err) {
+    botLogger.warn({ err }, 'ticketAutoClose: startup failed');
+  }
 
   const flushMs = Math.max(5_000, Math.trunc(Number(process.env.ANALYTICS_FLUSH_MS || 15000)));
   const flushTimer = setInterval(() => {
@@ -882,13 +885,6 @@ client.on(Events.MessageCreate, async message => {
     await cmd.execute(message, sanitizedArgs, { prefix, commands: prefixCommands });
     const duration = Date.now() - prefixStartedAt;
     trackCommandInvocation(cmd.name, "prefix");
-    void recordUserCommandStat({
-      userId: message.author.id,
-      command: cmd.name,
-      ok: true,
-      durationMs: duration,
-      source: "prefix"
-    }).catch(() => {});
     if (message.guildId) {
       await addCommandLog(message.guildId, {
         name: cmd.name,
@@ -901,13 +897,6 @@ client.on(Events.MessageCreate, async message => {
   } catch (err) {
     botLogger.error({ err, command: cmd.name }, "[prefix] command handler threw");
     const duration = Date.now() - prefixStartedAt;
-    void recordUserCommandStat({
-      userId: message.author.id,
-      command: cmd.name,
-      ok: false,
-      durationMs: duration,
-      source: "prefix"
-    }).catch(() => {});
     if (message.guildId) {
       await addCommandLog(message.guildId, {
         name: cmd.name,
@@ -937,7 +926,6 @@ client.on(Events.InteractionCreate, async interaction => {
       if (await handleAudiobookSelect(interaction)) return;
       if (await handleTicketsSelect(interaction)) return;
       if (await handleSetupSelect(interaction)) return;
-      if (await handleTriviaSelect(interaction)) return;
       if (await handleGameSelect(interaction)) return;
       if (await handleCraftSelect(interaction)) return;
       if (await handleTutorialsSelect(interaction)) return;
@@ -960,11 +948,12 @@ client.on(Events.InteractionCreate, async interaction => {
   }
 
   if (interaction.isButton?.()) {
+    const _btnClaimed = await claimIdempotencyKey(`btn:${interaction.id}`, 60).catch(() => true);
+    if (!_btnClaimed) return;
     try {
       if (await handleAudiobookButton(interaction)) return;
       if (await handleTicketsButton(interaction)) return;
       if (await handleSetupButton(interaction)) return;
-      if (await handleTriviaButton(interaction)) return;
       if (await handleGameButton(interaction)) return;
       if (await handleQuestsButton(interaction)) return;
       if (await handleCraftButton(interaction)) return;
@@ -973,7 +962,6 @@ client.on(Events.InteractionCreate, async interaction => {
       if (await handlePurgeButton(interaction)) return;
       if (await handleGiveawayButton(interaction)) return;
       if (await handleBackupButton(interaction)) return;
-      if (await handlePetButton(interaction)) return;
       if (await handleTutorialsButton(interaction)) return;
       // Verification system button
       if (interaction.customId === "chopsticks:verify:button") {
@@ -985,6 +973,38 @@ client.on(Events.InteractionCreate, async interaction => {
       if (interaction.customId.startsWith("chopsticks:marry:")) {
         const { handleMarryButton } = await import("./commands/marry.js");
         await handleMarryButton(interaction);
+        return;
+      }
+      // Welcome landing buttons
+      if (interaction.customId === "welcome:rules") {
+        await interaction.reply({ content: "Head to the rules channel or use `/rules preview` to read the server rules privately.", ephemeral: true });
+        return;
+      }
+      if (interaction.customId === "welcome:faq") {
+        await interaction.reply({ content: "Use `/faq preview` to read the FAQ, or check the FAQ channel.", ephemeral: true });
+        return;
+      }
+      if (interaction.customId === "welcome:ticket") {
+        await interaction.reply({ content: "Use `/ticket open` or the ticket panel to open a support ticket. Staff will respond as soon as possible.", ephemeral: true });
+        return;
+      }
+      if (interaction.customId === "welcome:rank") {
+        await interaction.reply({ content: "Use `!rank` to check your XP, level, and progress bar.", ephemeral: true });
+        return;
+      }
+      // FAQ buttons
+      if (interaction.customId === "faq:open_ticket") {
+        await interaction.reply({
+          content: "To open a support ticket, use `/ticket open` or the ticket panel in the designated channel. Staff will respond as soon as possible.",
+          ephemeral: true
+        });
+        return;
+      }
+      if (interaction.customId === "faq:view_rules") {
+        await interaction.reply({
+          content: "Use `/rules preview` to read the server rules privately, or check the rules channel directly.",
+          ephemeral: true
+        });
         return;
       }
       // Role menu buttons
@@ -1003,6 +1023,8 @@ client.on(Events.InteractionCreate, async interaction => {
   }
 
   if (interaction.isModalSubmit?.()) {
+    const _modalClaimed = await claimIdempotencyKey(`modal:${interaction.id}`, 60).catch(() => true);
+    if (!_modalClaimed) return;
     try {
       if (await handleVoiceModal(interaction)) return;
       if (await handleModelModal(interaction)) return;
@@ -1145,41 +1167,12 @@ client.on(Events.InteractionCreate, async interaction => {
     const duration = Date.now() - startTime;
     trackCommand(commandName, duration, "success");
     trackCommandInvocation(commandName, "slash");
-    void recordUserCommandStat({
-      userId: interaction.user.id,
-      command: commandName,
-      ok: true,
-      durationMs: duration,
-      source: "slash"
-    }).catch(() => {});
-    // Per-guild commands_used stat (fire-and-forget)
-    if (interaction.guildId) {
-      void import('./game/activityStats.js').then(m => m.addStat(interaction.user.id, interaction.guildId, 'commands_used', 1)).catch(() => {});
-      // Analytics: track command uses
-      (async () => {
-        try {
-          const { loadGuildData: lgd2, saveGuildData: sgd2 } = await import("./utils/storage.js");
-          const g2 = await lgd2(interaction.guildId);
-          g2.analytics ??= {};
-          g2.analytics.commandUses ??= {};
-          g2.analytics.commandUses[commandName] = (g2.analytics.commandUses[commandName] ?? 0) + 1;
-          await sgd2(interaction.guildId, g2);
-        } catch {}
-      })();
-    }
     commandLog.info({ duration }, "Command executed successfully");
     
   } catch (error) {
     const duration = Date.now() - startTime;
     trackCommand(commandName, duration, "error");
     trackCommandError(commandName);
-    void recordUserCommandStat({
-      userId: interaction.user.id,
-      command: commandName,
-      ok: false,
-      durationMs: duration,
-      source: "slash"
-    }).catch(() => {});
     
     commandLog.error({
       error: error.message, 

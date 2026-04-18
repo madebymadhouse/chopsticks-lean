@@ -47,6 +47,7 @@ export function normalizeTicketsConfig(rawData) {
   if (typeof cfg.categoryId !== "string") cfg.categoryId = null;
   if (typeof cfg.logChannelId !== "string") cfg.logChannelId = null;
   if (typeof cfg.supportRoleId !== "string") cfg.supportRoleId = null;
+  if (typeof cfg.supportDiscussionChannelId !== "string") cfg.supportDiscussionChannelId = null;
   if (typeof cfg.transcriptOnClose !== "boolean") cfg.transcriptOnClose = true;
 
   const counter = Number(cfg.counter);
@@ -169,13 +170,13 @@ export function buildTicketWelcomeEmbed({ ownerId, typeKey, createdByTag = null 
   const typeLabel = ticketTypeLabel(typeKey);
   return new EmbedBuilder()
     .setTitle("Ticket Opened")
-    .setColor(Colors.SUCCESS)
+    .setColor(0xCC3300)
     .setDescription(
-      `Owner: <@${ownerId}>\n` +
-      `Type: **${typeLabel}**\n` +
-      "Use the Close Ticket button when this issue is resolved."
+      `<@${ownerId}> — **${typeLabel}**\n\n` +
+      "Support will be with you shortly. Please wait patiently and avoid reposting.\n" +
+      "If you found help elsewhere, use the **Close Ticket** button below."
     )
-    .setFooter({ text: createdByTag ? `Opened by ${createdByTag}` : "Chopsticks Tickets" })
+    .setFooter({ text: createdByTag ? `Opened by ${createdByTag}` : "Mad House" })
     .setTimestamp();
 }
 
@@ -204,6 +205,11 @@ export function buildTicketStatusEmbed(config, openCount = 0) {
       {
         name: "Support Role",
         value: cfg.supportRoleId ? `<@&${cfg.supportRoleId}>` : "not configured",
+        inline: true
+      },
+      {
+        name: "Discussion Channel",
+        value: cfg.supportDiscussionChannelId ? `<#${cfg.supportDiscussionChannelId}>` : "not configured",
         inline: true
       },
       {

@@ -98,6 +98,13 @@ export const data = new SlashCommandBuilder()
           .setDescription("Generate transcript attachment when closing tickets")
           .setRequired(false)
       )
+      .addChannelOption(o =>
+        o
+          .setName("discussion_channel")
+          .setDescription("Support discussion channel — new ticket notices post here")
+          .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
+          .setRequired(false)
+      )
       .addBooleanOption(o =>
         o
           .setName("enabled")
@@ -274,6 +281,16 @@ async function createTicket(interaction, guildData, { typeKey = "support", subje
     components: [closeTicketButton()]
   }).catch(() => null);
 
+  if (cfg.supportDiscussionChannelId) {
+    const discCh = guild.channels.cache.get(cfg.supportDiscussionChannelId)
+      || await guild.channels.fetch(cfg.supportDiscussionChannelId).catch(() => null);
+    if (discCh?.isTextBased?.()) {
+      await discCh.send({
+        content: `New ticket opened by <@${interaction.user.id}> — **${ticketTypeLabel(normalizedType)}** → <#${channel.id}>`
+      }).catch(() => null);
+    }
+  }
+
   await auditLog({
     guildId: guild.id,
     userId: interaction.user.id,
@@ -387,39 +404,15 @@ async function closeTicket(interaction, guildData, { channel, reason = "No reaso
     ? await createTranscriptAttachment(channel, interaction.user.tag).catch(() => null)
     : null;
 
-  const nextTopic = buildTicketTopic({
-    ownerId: ticketMeta.ownerId,
-    status: "closed",
-    createdAt: ticketMeta.createdAt || Date.now(),
-    type: ticketMeta.type || "support"
-  });
-
-  const closedName = channel.name.startsWith("closed-")
-    ? channel.name
-    : `closed-${channel.name}`.slice(0, 90);
-
-  await channel.edit({
-    name: closedName,
-    topic: nextTopic,
-    reason: `Ticket closed by ${interaction.user.tag} via ${source}`
-  }).catch(() => null);
-
   await channel.permissionOverwrites.edit(channel.guild.roles.everyone, {
-    ViewChannel: false
+    ViewChannel: false,
+    SendMessages: false
   }).catch(() => null);
 
   if (ticketMeta.ownerId) {
     await channel.permissionOverwrites.edit(ticketMeta.ownerId, {
       ViewChannel: false,
       SendMessages: false
-    }).catch(() => null);
-  }
-
-  if (cfg.supportRoleId) {
-    await channel.permissionOverwrites.edit(cfg.supportRoleId, {
-      ViewChannel: true,
-      SendMessages: true,
-      ReadMessageHistory: true
     }).catch(() => null);
   }
 
@@ -475,12 +468,14 @@ async function closeTicket(interaction, guildData, { channel, reason = "No reaso
     embeds: [
       createEmbed(
         "Ticket Closed",
-        `Closed by <@${interaction.user.id}>.\nReason: ${String(reason || "No reason provided.").slice(0, 300)}`,
+        `Closed by <@${interaction.user.id}>.\nReason: ${String(reason || "No reason provided.").slice(0, 300)}\n\n*This channel will be deleted in 10 seconds.*`,
         Colors.WARNING
       )
     ],
     components: []
   }).catch(() => null);
+
+  setTimeout(() => channel.delete(`Ticket closed by ${interaction.user.tag} via ${source}`).catch(() => null), 10_000);
 
   return { ok: true, transcriptIncluded: Boolean(transcript) };
 }
@@ -563,6 +558,7 @@ export async function execute(interaction) {
     const panelChannel = interaction.options.getChannel("panel_channel", false);
     const logChannel = interaction.options.getChannel("log_channel", false);
     const supportRole = interaction.options.getRole("support_role", false);
+    const discussionChannel = interaction.options.getChannel("discussion_channel", false);
     const transcriptOnClose = interaction.options.getBoolean("transcript_on_close", false);
     const enabled = interaction.options.getBoolean("enabled", false);
 
@@ -570,6 +566,7 @@ export async function execute(interaction) {
     if (panelChannel) cfg.panelChannelId = panelChannel.id;
     if (logChannel) cfg.logChannelId = logChannel.id;
     if (supportRole) cfg.supportRoleId = supportRole.id;
+    if (discussionChannel) cfg.supportDiscussionChannelId = discussionChannel.id;
     if (transcriptOnClose !== null) cfg.transcriptOnClose = Boolean(transcriptOnClose);
     cfg.enabled = enabled === null ? true : Boolean(enabled);
 
@@ -584,6 +581,7 @@ export async function execute(interaction) {
             `Panel Channel: ${cfg.panelChannelId ? `<#${cfg.panelChannelId}>` : "not set"}\n` +
             `Log Channel: ${cfg.logChannelId ? `<#${cfg.logChannelId}>` : "not set"}\n` +
             `Support Role: ${cfg.supportRoleId ? `<@&${cfg.supportRoleId}>` : "not set"}\n` +
+            `Discussion Channel: ${cfg.supportDiscussionChannelId ? `<#${cfg.supportDiscussionChannelId}>` : "not set"}\n` +
             `Transcript on Close: **${cfg.transcriptOnClose ? "yes" : "no"}**`,
           Colors.SUCCESS
         )
