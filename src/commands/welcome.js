@@ -1,7 +1,131 @@
-import { SlashCommandBuilder, PermissionFlagsBits, MessageFlags, EmbedBuilder } from "discord.js";
+import { SlashCommandBuilder, PermissionFlagsBits, MessageFlags, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder, ChannelType } from "discord.js";
 import { loadGuildData, saveGuildData } from "../utils/storage.js";
 import { Colors } from "../utils/discordOutput.js";
 import { sanitizeString } from "../utils/validation.js";
+import { buildWelcomeBannerSvg } from "../game/render/cards.js";
+import { svgToPngBuffer } from "../game/render/imCards.js";
+
+const MH_PRIMARY = 0xCC3300;
+const MH_NEUTRAL = 0x1A1A1A;
+const BANNER_URL = process.env.MADHOUSE_BANNER_URL ?? null;
+
+const SKIP_PREFIXES = ["ticket-", "closed-"];
+
+function isPublicChannel(channel, everyoneId) {
+  if (!everyoneId) return true;
+  const ow = channel.permissionOverwrites?.cache?.get(everyoneId);
+  if (!ow) return true;
+  const ViewChannel = 1024n;
+  if (ow.deny && (BigInt(ow.deny) & ViewChannel) === ViewChannel) return false;
+  return true;
+}
+
+function buildChannelTree(guild) {
+  const everyoneId = guild.roles.everyone?.id;
+
+  const cats = [...guild.channels.cache.values()]
+    .filter(c => c.type === ChannelType.GuildCategory)
+    .sort((a, b) => a.position - b.position);
+
+  const lines = [];
+  for (const cat of cats) {
+    const children = [...guild.channels.cache.values()]
+      .filter(c =>
+        c.parentId === cat.id &&
+        (c.type === ChannelType.GuildText || c.type === ChannelType.GuildVoice || c.type === ChannelType.GuildAnnouncement) &&
+        !SKIP_PREFIXES.some(p => c.name.startsWith(p)) &&
+        isPublicChannel(c, everyoneId)
+      )
+      .sort((a, b) => a.position - b.position);
+
+    if (!children.length) continue;
+    lines.push(`**${cat.name.toUpperCase()}**`);
+    for (const ch of children) {
+      if (ch.type === ChannelType.GuildVoice) {
+        lines.push(`${ch.name}`);
+      } else {
+        lines.push(`<#${ch.id}>`);
+      }
+    }
+    lines.push("");
+  }
+
+  const result = lines.join("\n").trim();
+  return result.length > 950 ? result.slice(0, 947) + "…" : (result || "No public channels configured.");
+}
+
+function buildLandingEmbeds(guild, bannerAttached = false) {
+  const intro = new EmbedBuilder()
+    .setColor(MH_PRIMARY)
+    .setTitle("Mad House")
+    .setDescription(
+      "Mad House is a build studio.\n\n" +
+      "We build tools, bots, platforms, agents, and anything worth building. " +
+      "The work is open. The community is open. " +
+      "Solid people, no BS.\n\n" +
+      "Read the rules. Start contributing. Stay Mad."
+    )
+    .setFooter({ text: "Mad House" })
+    .setTimestamp();
+
+  if (bannerAttached) {
+    intro.setImage("attachment://banner.png");
+  } else if (BANNER_URL) {
+    intro.setImage(BANNER_URL);
+  }
+
+  const nav = new EmbedBuilder()
+    .setColor(MH_NEUTRAL)
+    .setTitle("Get Around")
+    .addFields(
+      { name: "Rules", value: "Read them. Follow them. No exceptions.", inline: false },
+      { name: "Creds", value: "Earned by chatting and spending time in voice. Use `!rank` to check your level.", inline: false },
+      { name: "Voice", value: "Join the lobby channel. A private room is created for you instantly.", inline: false },
+      { name: "Tickets", value: "Use `/ticket open` for support, applications, or anything formal.", inline: false }
+    );
+
+  if (guild) {
+    const tree = buildChannelTree(guild);
+    nav.addFields({ name: "Channels", value: tree, inline: false });
+  }
+
+  const support = new EmbedBuilder()
+    .setColor(MH_PRIMARY)
+    .setTitle("Get Support")
+    .setDescription(
+      "The ticket system is the official way to reach staff.\n\n" +
+      "Use `/ticket open` or the button below to open a ticket. " +
+      "Tell us what you need, what you want to build, or why you're applying. " +
+      "Staff review everything.\n\n" +
+      "For quick answers, check the FAQ. For everything else, open a ticket."
+    )
+    .setFooter({ text: "Mad House  —  Use /ticket for anything formal" });
+
+  return [intro, nav, support];
+}
+
+function buildLandingButtons() {
+  return [
+    new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("welcome:ticket")
+        .setLabel("Open a Ticket")
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
+        .setLabel("FAQ")
+        .setStyle(ButtonStyle.Link)
+        .setURL("https://hub.madebymadhouse.cloud"),
+      new ButtonBuilder()
+        .setLabel("Community Hub")
+        .setStyle(ButtonStyle.Link)
+        .setURL("https://hub.madebymadhouse.cloud"),
+      new ButtonBuilder()
+        .setLabel("GitHub")
+        .setStyle(ButtonStyle.Link)
+        .setURL("https://github.com/madebymadhouse")
+    )
+  ];
+}
 
 export const meta = {
   deployGlobal: true,
@@ -13,6 +137,11 @@ export const meta = {
 export const data = new SlashCommandBuilder()
   .setName("welcome")
   .setDescription("Welcome and goodbye message settings")
+  .addSubcommand(s =>
+    s.setName("post")
+      .setDescription("Post the Mad House welcome landing page to a channel")
+      .addChannelOption(o => o.setName("channel").setDescription("Target channel").setRequired(true))
+  )
   .addSubcommand(s =>
     s.setName("set").setDescription("Set welcome channel")
       .addChannelOption(o => o.setName("channel").setDescription("Channel").setRequired(true)))
@@ -51,6 +180,28 @@ export async function execute(interaction) {
   gd.welcome ??= { enabled: false, channelId: null, message: "Welcome {user}!" };
   gd.goodbye ??= { enabled: false, channelId: null, message: "Goodbye {user}." };
   gd.joinDm ??= { enabled: false, message: null };
+
+  if (sub === "post") {
+    const channel = interaction.options.getChannel("channel", true);
+    const botMember = interaction.guild?.members?.me;
+    if (botMember && channel.permissionsFor) {
+      const perms = channel.permissionsFor(botMember);
+      if (!perms?.has(PermissionFlagsBits.SendMessages) || !perms?.has(PermissionFlagsBits.EmbedLinks)) {
+        return interaction.reply(reply("Missing Permissions", `I cannot send embeds in ${channel}.`, Colors.ERROR));
+      }
+    }
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    const pngBuf = await svgToPngBuffer(buildWelcomeBannerSvg()).catch(() => null);
+    const file = pngBuf ? new AttachmentBuilder(pngBuf, { name: "banner.png" }) : null;
+
+    await channel.send({
+      embeds: buildLandingEmbeds(interaction.guild, Boolean(file)),
+      components: buildLandingButtons(),
+      ...(file ? { files: [file] } : {})
+    });
+    return interaction.editReply({ content: `Welcome landing posted in ${channel}.` });
+  }
 
   if (sub === "set") {
     const channel = interaction.options.getChannel("channel", true);

@@ -19,7 +19,7 @@ const DEFAULT_CONFIG = {
   message_xp_cooldown_s: 60,
   xp_multiplier: 1.0,
   levelup_channel_id: null,
-  levelup_message: 'GG {user}, you hit **level {level}**! 🎉',
+  levelup_message: '{user} hit **level {level}**.',
   levelup_dm: false,
   sync_global_xp: true,
 };
@@ -109,20 +109,19 @@ async function announceLevel(client, guildId, userId, level, cfg) {
         .replace(/{user}/g, `<@${userId}>`)
         .replace(/{level}/g, String(level));
       return new EmbedBuilder()
-        .setColor(0xF5A623)
-        .setDescription(`🎉 ${description}`)
-        .setFooter({ text: guild.name, iconURL: guild.iconURL() ?? undefined })
+        .setColor(0xCC3300)
+        .setDescription(description)
+        .setFooter({ text: "Mad House", iconURL: guild.iconURL() ?? undefined })
         .setTimestamp();
     }
 
-    // Build a DM embed (no mention — use display name)
     function buildDmEmbed(username) {
       const description = customMsg
         .replace(/{user}/g, username)
         .replace(/{level}/g, String(level));
       return new EmbedBuilder()
-        .setColor(0xF5A623)
-        .setTitle(`🎉 Level Up!`)
+        .setColor(0xCC3300)
+        .setTitle("Level Up")
         .setDescription(description)
         .setThumbnail(guild.iconURL() ?? null)
         .addFields({ name: 'Server', value: guild.name, inline: true }, { name: 'New Level', value: String(level), inline: true })

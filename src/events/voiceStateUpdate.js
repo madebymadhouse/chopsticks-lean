@@ -52,12 +52,6 @@ export default {
     if (!oldChannel && newChannel) {
       // User joined VC
       vcJoinTimes.set(vcKey, Date.now());
-      void (async () => {
-        try {
-          const { addStat } = await import('../game/activityStats.js');
-          addStat(member.id, guild.id, 'vc_sessions', 1);
-        } catch (err) { logger.warn({ err }, "voiceStateUpdate: vc_sessions stat error"); }
-      })();
     } else if (oldChannel && !newChannel) {
       // User left VC — compute session minutes
       const joinedAt = vcJoinTimes.get(vcKey);
@@ -117,7 +111,7 @@ export default {
           };
           setTimeout(() => {
             cleanup().catch(err => log("custom cleanup failed", { channelId, error: err?.message }));
-          }, 500);
+          }, 5000);
         } else {
           // Non-owner left, room still has people — refresh panel member count
           await refreshRegisteredRoomPanelsForRoom(guild, channelId, "member-change").catch(() => {});

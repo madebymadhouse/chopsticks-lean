@@ -299,3 +299,60 @@ export function buildBattleCardSvg({ winner, loser, winnerLevel = 1, loserLevel 
   <text x="${W-20}" y="${H-14}" text-anchor="end" font-size="13" font-family="DejaVu Sans, sans-serif" fill="#484f58">Chopsticks</text>
 </svg>`;
 }
+
+export function buildWelcomeBannerSvg() {
+  const W = 1100;
+  const H = 280;
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0a0a0a"/>
+      <stop offset="60%" stop-color="#130500"/>
+      <stop offset="100%" stop-color="#1a0800"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#CC3300"/>
+      <stop offset="100%" stop-color="#FF5500"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="12" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="softglow"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="${W}" height="${H}" fill="url(#bg)"/>
+  <!-- Bottom accent bar -->
+  <rect x="0" y="${H-6}" width="${W}" height="6" fill="url(#accent)"/>
+  <!-- Subtle left glow -->
+  <ellipse cx="0" cy="${H/2}" rx="300" ry="180" fill="#CC3300" opacity="0.08"/>
+  <!-- MAD HOUSE wordmark -->
+  <text x="80" y="165" font-size="88" font-family="DejaVu Sans, sans-serif" fill="#ffffff" font-weight="900" letter-spacing="-2" filter="url(#softglow)">MAD HOUSE</text>
+  <!-- Tagline -->
+  <text x="84" y="210" font-size="22" font-family="DejaVu Sans, sans-serif" fill="#CC3300" letter-spacing="6">A BUILD STUDIO</text>
+  <!-- Decorative bar left of text -->
+  <rect x="80" y="88" width="5" height="90" fill="url(#accent)" rx="2" filter="url(#glow)"/>
+</svg>`;
+}
+
+export function buildRulesBannerSvg() {
+  const W = 1100;
+  const H = 180;
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0a0a0a"/>
+      <stop offset="100%" stop-color="#130500"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#CC3300"/>
+      <stop offset="100%" stop-color="#FF5500"/>
+    </linearGradient>
+    <filter id="softglow"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="${W}" height="${H}" fill="url(#bg)"/>
+  <rect x="0" y="${H-5}" width="${W}" height="5" fill="url(#accent)"/>
+  <ellipse cx="0" cy="${H/2}" rx="200" ry="120" fill="#CC3300" opacity="0.07"/>
+  <rect x="80" y="52" width="5" height="76" fill="url(#accent)" rx="2"/>
+  <text x="105" y="116" font-size="68" font-family="DejaVu Sans, sans-serif" fill="#ffffff" font-weight="900" letter-spacing="-1" filter="url(#softglow)">RULES</text>
+  <text x="108" y="140" font-size="16" font-family="DejaVu Sans, sans-serif" fill="#CC3300" letter-spacing="5">MAD HOUSE</text>
+</svg>`;
+}

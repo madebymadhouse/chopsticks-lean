@@ -7,28 +7,28 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const Branding = {
-  name:          process.env.BOT_NAME        ?? "chopsticks-lean",
-  tagline:       process.env.BOT_TAGLINE     ?? "A lean Discord bot for moderation, core server tooling, and custom VC workflows",
-  supportServer: process.env.SUPPORT_SERVER_URL ?? "https://discord.gg/chopsticks",
+  name:          process.env.BOT_NAME        ?? "Chopsticks",
+  tagline:       process.env.BOT_TAGLINE     ?? "Mad House — lean, mean, and always running",
+  supportServer: process.env.SUPPORT_SERVER_URL ?? "",
   inviteUrl:     process.env.BOT_INVITE_URL  ?? "",
   website:       process.env.BOT_WEBSITE     ?? "https://github.com/samhcharles/chopsticks-lean",
   github:        process.env.BOT_GITHUB      ?? "https://github.com/samhcharles/chopsticks-lean",
 
   // Default footer for all embeds. {botname} is replaced at runtime.
-  footerText: process.env.BOT_FOOTER ?? "{botname}",
+  footerText: process.env.BOT_FOOTER ?? "Mad House  •  {botname}",
 
   // Static thumbnail URL (optional). Falls back to bot avatar.
   thumbnailUrl: process.env.BOT_THUMBNAIL_URL ?? null,
 
-  // Default color palette — override per-server via /theme command
+  // Mad House color palette
   colors: {
-    primary: Number(process.env.COLOR_PRIMARY ?? 0x5865F2),
-    success: Number(process.env.COLOR_SUCCESS ?? 0x57F287),
-    error:   Number(process.env.COLOR_ERROR   ?? 0xED4245),
-    warning: Number(process.env.COLOR_WARNING ?? 0xFEE75C),
-    info:    Number(process.env.COLOR_INFO    ?? 0x5865F2),
-    neutral: Number(process.env.COLOR_NEUTRAL ?? 0x99AAB5),
-    premium: Number(process.env.COLOR_PREMIUM ?? 0xFF73FA),
+    primary:   Number(process.env.COLOR_PRIMARY   ?? 0xCC3300), // deep red-orange
+    secondary: Number(process.env.COLOR_SECONDARY ?? 0xFF5500), // bright orange-red
+    success:   Number(process.env.COLOR_SUCCESS   ?? 0x2ECC71),
+    error:     Number(process.env.COLOR_ERROR     ?? 0xE74C3C),
+    warning:   Number(process.env.COLOR_WARNING   ?? 0xF39C12),
+    neutral:   Number(process.env.COLOR_NEUTRAL   ?? 0x1A1A1A), // near-black
+    info:      Number(process.env.COLOR_INFO      ?? 0x1A1A1A),
   },
 
   // Feature flags — set env var to "false" to disable globally

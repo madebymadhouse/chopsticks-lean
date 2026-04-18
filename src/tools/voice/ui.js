@@ -972,6 +972,44 @@ async function handleLivePanelButton(interaction, parsed) {
     return true;
   }
 
+  if (action === "kick_member" || action === "ban_member" || action === "whitelist_member" || action === "unban_member") {
+    const ctx = await resolveContext(interaction, parsed.roomChannelId, {
+      requireMembership: false,
+      requireControl: true
+    });
+    if (!ctx.ok) {
+      await interaction.reply({ embeds: [buildErrorEmbed(contextErrorMessage(ctx.error))], ephemeral: true });
+      return true;
+    }
+    const labels = {
+      kick_member: "Kick Member from Room",
+      ban_member: "Ban Member from Room",
+      whitelist_member: "Whitelist Member",
+      unban_member: "Unban Member"
+    };
+    const placeholders = {
+      kick_member: "User ID or exact username (must be in your room)",
+      ban_member: "User ID or exact username",
+      whitelist_member: "User ID or exact username",
+      unban_member: "User ID or exact username"
+    };
+    const memberModal = new ModalBuilder()
+      .setCustomId(makeRoomModalCustomId(action, interaction.guildId, parsed.roomChannelId))
+      .setTitle(labels[action]);
+    memberModal.addComponents(
+      new ActionRowBuilder().addComponents(
+        new TextInputBuilder()
+          .setCustomId("target")
+          .setLabel("User ID or username")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true)
+          .setPlaceholder(placeholders[action])
+      )
+    );
+    await interaction.showModal(memberModal).catch(() => {});
+    return true;
+  }
+
   if (action === "music") {
     await interaction.reply({
       embeds: [buildErrorEmbed("Quick Play is unavailable in the lean build. Custom VC controls remain active.")],
@@ -1397,6 +1435,65 @@ export async function handleVoiceUIModal(interaction) {
     await refreshRegisteredRoomPanelsForRoom(ctx.guild, rid, "limit", { notice: "Member cap updated." }).catch(() => {});
     const payload = buildDmDashboardPayload(ctx, { notice: `Member cap updated: ${limit === 0 ? "unlimited" : String(limit)}.` });
     await interaction.reply({ ...payload, ...maybeEphemeralFlags(interaction) }).catch(() => {});
+    return true;
+  }
+
+  if (kind === "kick_member" || kind === "ban_member" || kind === "whitelist_member" || kind === "unban_member") {
+    const ctx = interaction.inGuild?.()
+      ? await resolveContext(interaction, rid, { requireMembership: false, requireControl: true })
+      : await resolveRoomContextFromIds(interaction.client, gid, rid, interaction.user.id);
+
+    if (!ctx?.ok) {
+      await interaction.reply({ embeds: [buildErrorEmbed("Room no longer available.")], flags: MessageFlags.Ephemeral }).catch(() => {});
+      return true;
+    }
+    if (!ctx.isOwner && !ctx.isAdmin) {
+      await interaction.reply({ embeds: [buildErrorEmbed("Only the room owner or admins can do that.")], ...maybeEphemeralFlags(interaction) }).catch(() => {});
+      return true;
+    }
+
+    const raw = interaction.fields.getTextInputValue("target").trim();
+    const guild = ctx.guild;
+
+    // resolve member — try ID first, then username search
+    let targetMember = null;
+    const idClean = raw.replace(/\D/g, "");
+    if (idClean) targetMember = guild.members.cache.get(idClean) ?? await guild.members.fetch(idClean).catch(() => null);
+    if (!targetMember) {
+      const q = raw.toLowerCase().replace(/^@/, "");
+      targetMember = guild.members.cache.find(m => m.user.username.toLowerCase() === q || m.displayName.toLowerCase() === q) ?? null;
+    }
+    if (!targetMember) {
+      await interaction.reply({ embeds: [buildErrorEmbed(`User not found: \`${raw}\``)], ...maybeEphemeralFlags(interaction) }).catch(() => {});
+      return true;
+    }
+    if (targetMember.id === interaction.user.id) {
+      await interaction.reply({ embeds: [buildErrorEmbed("You can't target yourself.")], ...maybeEphemeralFlags(interaction) }).catch(() => {});
+      return true;
+    }
+
+    const name = targetMember.displayName ?? targetMember.user.username;
+    const channel = ctx.roomChannel;
+
+    if (kind === "kick_member") {
+      if (targetMember.voice?.channelId !== channel.id) {
+        await interaction.reply({ embeds: [buildErrorEmbed(`**${name}** is not in your room.`)], ...maybeEphemeralFlags(interaction) }).catch(() => {});
+        return true;
+      }
+      await targetMember.voice.disconnect().catch(() => null);
+      await interaction.reply({ embeds: [buildEmbed("Kicked", `**${name}** was disconnected from your room.`)], ...maybeEphemeralFlags(interaction) }).catch(() => {});
+    } else if (kind === "ban_member") {
+      await channel.permissionOverwrites.edit(targetMember.user, { Connect: false }).catch(() => null);
+      if (targetMember.voice?.channelId === channel.id) await targetMember.voice.disconnect().catch(() => null);
+      await interaction.reply({ embeds: [buildEmbed("Banned", `**${name}** is banned from your room.`)], ...maybeEphemeralFlags(interaction) }).catch(() => {});
+    } else if (kind === "whitelist_member") {
+      await channel.permissionOverwrites.edit(targetMember.user, { Connect: true }).catch(() => null);
+      await interaction.reply({ embeds: [buildEmbed("Whitelisted", `**${name}** can now join your room even when locked.`)], ...maybeEphemeralFlags(interaction) }).catch(() => {});
+    } else if (kind === "unban_member") {
+      await channel.permissionOverwrites.edit(targetMember.user, { Connect: null }).catch(() => null);
+      await interaction.reply({ embeds: [buildEmbed("Unbanned", `**${name}**'s ban has been removed.`)], ...maybeEphemeralFlags(interaction) }).catch(() => {});
+    }
+
     return true;
   }
 

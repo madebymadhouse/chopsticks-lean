@@ -7,8 +7,8 @@ import COLORS from "../../utils/colors.js";
 export default [
   {
     name: "rank",
-    aliases: ["level", "xp", "lvl"],
-    description: "Show your level and XP — !rank [@user]",
+    aliases: ["level", "xp", "lvl", "creds"],
+    description: "Show your level and Creds — !rank [@user]",
     guildOnly: true,
     rateLimit: 5000,
     async execute(message, args) {
@@ -36,23 +36,23 @@ export default [
       const rank = rankRow?.rows[0]?.rank ?? "?";
 
       const embed = new EmbedBuilder()
-        .setTitle(`📊 ${target.displayName}'s Rank`)
+        .setTitle(`${target.displayName}'s Rank`)
         .setThumbnail(target.displayAvatarURL())
         .addFields(
           { name: "Level", value: `**${level}**`, inline: true },
-          { name: "XP", value: `**${xp.toLocaleString()}**`, inline: true },
+          { name: "Creds", value: `**${xp.toLocaleString()}**`, inline: true },
           { name: "Server Rank", value: `**#${rank}**`, inline: true },
-          { name: `Progress to Level ${level + 1}`, value: `${bar} ${pct}%\n${progress.toLocaleString()} / ${needed.toLocaleString()} XP` }
+          { name: `Progress to Level ${level + 1}`, value: `${bar} ${pct}%\n${progress.toLocaleString()} / ${needed.toLocaleString()} Creds` }
         )
         .setColor(COLORS.INFO)
-        .setFooter({ text: "Chopsticks !rank" });
+        .setFooter({ text: "Mad House  —  !rank" });
       await message.reply({ embeds: [embed] });
     }
   },
   {
     name: "top",
     aliases: ["leaderboard", "lb"],
-    description: "Top XP leaderboard — !top",
+    description: "Top Creds leaderboard — !top",
     guildOnly: true,
     rateLimit: 8000,
     async execute(message) {
@@ -62,18 +62,18 @@ export default [
         [message.guildId]
       ).catch(() => ({ rows: [] }));
 
-      if (!rows.rows.length) return reply(message, "📊 No XP data yet for this server.");
+      if (!rows.rows.length) return reply(message, "No Creds data yet for this server.");
 
       const lines = rows.rows.map((row, i) => {
-        const medal = ["🥇","🥈","🥉"][i] ?? `\`#${i + 1}\``;
-        return `${medal} <@${row.user_id}> — Level **${row.level}** | ${Number(row.xp).toLocaleString()} XP`;
+        const medal = ["1.", "2.", "3."][i] ?? `#${i + 1}`;
+        return `${medal} <@${row.user_id}> — Level **${row.level}** | ${Number(row.xp).toLocaleString()} Creds`;
       });
 
       const embed = new EmbedBuilder()
-        .setTitle("🏆 XP Leaderboard")
+        .setTitle("Creds Leaderboard")
         .setDescription(lines.join("\n"))
         .setColor(COLORS.INFO)
-        .setFooter({ text: `Use !rank to see your own stats • Chopsticks` });
+        .setFooter({ text: "Use !rank to see your own stats  —  Mad House" });
       await message.reply({ embeds: [embed] });
     }
   },

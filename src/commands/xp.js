@@ -13,8 +13,8 @@ export const meta = {
   deployGlobal: true,
   guildOnly: true,
   userPerms: [PermissionFlagsBits.ManageGuild],
-  name: 'xp',
-  description: 'Configure per-guild XP and leveling system',
+  name: 'creds',
+  description: 'Configure the Creds and leveling system',
   category: "social",
 };
 
@@ -31,24 +31,24 @@ const XP_SOURCES = [
 ];
 
 export const data = new SlashCommandBuilder()
-  .setName('xp')
-  .setDescription('⚡ Configure the XP and leveling system for this server')
+  .setName('creds')
+  .setDescription('Configure the Creds and leveling system for this server')
   .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
   .addSubcommandGroup(g => g
     .setName('config')
-    .setDescription('Manage XP configuration')
+    .setDescription('Manage Creds configuration')
     .addSubcommand(s => s
       .setName('view')
-      .setDescription('View the current XP configuration for this server'))
+      .setDescription('View current Creds configuration for this server'))
     .addSubcommand(s => s
       .setName('set')
-      .setDescription('Set XP amount for a specific activity')
+      .setDescription('Set Creds amount for a specific activity')
       .addStringOption(o => o.setName('source').setDescription('Activity type').setRequired(true)
         .addChoices(...XP_SOURCES.map(x => ({ name: x.name, value: x.value }))))
-      .addIntegerOption(o => o.setName('amount').setDescription('XP amount (0 to disable)').setRequired(true).setMinValue(0).setMaxValue(500)))
+      .addIntegerOption(o => o.setName('amount').setDescription('Creds amount (0 to disable)').setRequired(true).setMinValue(0).setMaxValue(500)))
     .addSubcommand(s => s
       .setName('multiplier')
-      .setDescription('Set a global XP multiplier for this server')
+      .setDescription('Set a global Creds multiplier for this server')
       .addNumberOption(o => o.setName('value').setDescription('Multiplier (0.5–5.0)').setRequired(true).setMinValue(0.1).setMaxValue(5.0)))
     .addSubcommand(s => s
       .setName('toggle')
@@ -57,7 +57,7 @@ export const data = new SlashCommandBuilder()
         .addChoices({ name: 'on', value: 'on' }, { name: 'off', value: 'off' })))
     .addSubcommand(s => s
       .setName('sync')
-      .setDescription('Sync global economy XP into guild XP')
+      .setDescription('Sync global Creds into guild Creds')
       .addStringOption(o => o.setName('state').setDescription('on or off').setRequired(true)
         .addChoices({ name: 'on', value: 'on' }, { name: 'off', value: 'off' })))
     .addSubcommand(s => s
@@ -67,7 +67,7 @@ export const data = new SlashCommandBuilder()
     .addSubcommand(s => s
       .setName('levelup_message')
       .setDescription('Set the level-up announcement message')
-      .addStringOption(o => o.setName('template').setDescription('Use {user} {level} {xp} as placeholders').setRequired(true).setMaxLength(200)))
+      .addStringOption(o => o.setName('template').setDescription('Placeholders: {user} {level}').setRequired(true).setMaxLength(200)))
     .addSubcommand(s => s
       .setName('preset')
       .setDescription('Apply a preset XP configuration')
