@@ -212,9 +212,47 @@ Chopsticks Lean is a stripped build of [Chopsticks](https://github.com/samhcharl
 
 ---
 
+## Agents
+
+All agents live in `.github/agents/`. Drop any of them into VS Code and invoke by name.
+
+| Agent | What it does |
+|---|---|
+| `@orchestrator` | Coordinates the full fleet for large or cross-cutting tasks |
+| `@coder` | Writes and changes production code |
+| `@debugger` | Root cause analysis — reads the failure, finds why, fixes it |
+| `@reviewer` | Reviews code before it merges |
+| `@security` | Security audit — secrets, auth, injection, deps |
+| `@auditor` | Full structured audit of the repo |
+| `@context-keeper` | Writes session logs and handoffs so work doesn't get lost |
+| `@writer` | Humanizes any doc or README section |
+
+Full agent roster: [madebymadhouse/agents](https://github.com/madebymadhouse/agents)
+
+---
+
 ## Contributing
 
-Small, focused PRs only. Bug fixes, moderation improvements, and voice room fixes are welcome. Open an issue before building something large.
+This is the live bot running the Mad House server. Contributions are welcome, but the bar is real — anything that ships runs in production.
+
+**Good PRs:**
+- Bug fixes with a clear description of what was broken and how you verified the fix
+- Moderation command improvements — timeout durations, log formatting, permission checks
+- Voice room edge cases — auto-delete timing, panel interactions, lobby behavior
+- Migration fixes or new migrations that are backward compatible
+
+**Before opening a PR:**
+- Run `npm run migrate` on a clean DB copy and confirm it applies cleanly
+- Test the specific command or event path you changed
+- If you're adding a new command, update `scripts/deployCommands.js`
+- Open an issue first for anything that changes the data schema or adds a new dependency
+
+**Not accepted:**
+- Features that belong in the full [Chopsticks](https://github.com/samhcharles/chopsticks) repo (music, trading cards, web dashboard)
+- Breaking changes to existing command APIs
+- Untested migrations
+
+Use `@coder` and `@reviewer` from the agents dir to help write and review your changes before submitting.
 
 ---
 
