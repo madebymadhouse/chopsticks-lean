@@ -25,7 +25,7 @@ jobs:
           cache: "npm"
 
       - name: Install deps
-        run: npm ci --omit=optional
+        run: npm ci
 
       - name: Syntax gate
         run: npm run ci:syntax
