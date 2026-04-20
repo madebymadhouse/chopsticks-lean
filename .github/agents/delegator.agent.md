@@ -37,6 +37,7 @@ Read the request and map every piece of it to an agent. Use this as your guide:
 | Anything involving multiple agents or repos | `@orchestrator` to coordinate, then individual agents |
 | Lost context, fresh session, "what were we doing" | `@context-keeper` first, always |
 | Full ecosystem pass, org-wide check, unification | `@librarian` |
+| Branching, commits, PRs, merge prep, release hygiene | `@git-keeper` |
 | Writing new code, adding features, changing logic | `@coder` |
 | Something is broken, error, crash, unexpected behavior | `@debugger` |
 | Code review before merge | `@reviewer` (after `@coder`) |
@@ -48,6 +49,7 @@ Read the request and map every piece of it to an agent. Use this as your guide:
 | VPS maintenance, server ops, runbooks | `@vps-maintenance-planner` |
 | Discord bot workflow, handoffs, standards | `@bot-dev-playbook` |
 | Turning repeated work into a playbook repo | `@playbook-builder` |
+| Turning a repeated org-wide cleanup into a durable runbook | `@playbook-builder`, then `@bot-dev-playbook` |
 | Session end, handoff, state write | `@context-keeper` last |
 
 ---
@@ -123,16 +125,22 @@ These come up constantly. Know how to route them immediately.
 → `@librarian` (check standards) → `@auditor` (full audit) → `@updater` (fix findings) → `@writer` (humanize any docs) → `@context-keeper` (write state)
 
 **"Build [feature]"**
-→ `@context-keeper` (read state) → `@coder` (implement) → `@reviewer` (review) → `@context-keeper` (write state)
+→ `@context-keeper` (read state) → `@coder` (implement) → `@reviewer` (review) → `@git-keeper` (branch / commit / PR) → `@context-keeper` (write state)
 
 **"Clean up / unify everything"**
 → `@orchestrator` → (full fleet pass per repo) → `@context-keeper` (write final state)
+
+**"This chat should become a guide / runbook / playbook"**
+→ `@playbook-builder` (capture the repeated workflow) → `@writer` (humanize) → `@git-keeper` (branch / commit / PR)
 
 **"Update all READMEs"**
 → `@beautiful-readme` (structure) → `@writer` (voice) per repo in sequence
 
 **"Security check"**
 → `@security` (audit) → `@updater` (fix findings)
+
+**"Commit this / open a PR / clean up the branch"**
+→ `@git-keeper` (stage, commit, branch, push, PR, merge prep)
 
 **"I don't know where we left off"**
 → `@context-keeper` (read HANDOFF.md + session log) → report current state → ask what to do next
@@ -148,5 +156,6 @@ These come up constantly. Know how to route them immediately.
 2. **One ambiguity, one question.** If the request is unclear, ask one specific question and wait for the answer before dispatching.
 3. **Read context before dispatching.** If there's a `HANDOFF.md` or session log, read it via `@context-keeper` before sending anything to another agent.
 4. **Never skip reviewer before push.** Any code change goes through `@reviewer` before it's committed or pushed.
-5. **Always write state at the end.** Every session ends with `@context-keeper` writing the current state.
-6. **Report what was done.** The user asked for something. Confirm it's done, what changed, and what's next.
+5. **Default to branch + PR.** `@git-keeper` opens the branch and PR; the human merges unless it's an approved hotfix.
+6. **Always write state at the end.** Every session ends with `@context-keeper` writing the current state.
+7. **Report what was done.** The user asked for something. Confirm it's done, what changed, and what's next.
