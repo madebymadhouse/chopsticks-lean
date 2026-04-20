@@ -14,7 +14,6 @@ paths = [
   "test/fixtures/",
   ".env.example",
   "docs/",
-  "wokspec/",
   "scripts/voice-piper-models.md"
 ]
 regexes = [
