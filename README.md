@@ -2,7 +2,7 @@
 
 # Chopsticks Lean
 
-**A self-hosted Discord bot for moderation, economy, voice rooms, and community tools.**
+**Self-hosted Discord bot. Moderation, economy, tickets, voice rooms, leveling.**
 
 ![License](https://img.shields.io/github/license/samhcharles/chopsticks-lean)
 ![Version](https://img.shields.io/github/package-json/v/samhcharles/chopsticks-lean)
@@ -15,17 +15,17 @@
 
 ---
 
-The Discord bot running the [Mad House](https://madebymadhouse.cloud) community server.
+This is the bot running the [Mad House](https://madebymadhouse.cloud) server.
 
-This is a lean build of [Chopsticks](https://github.com/samhcharles/chopsticks) — the full-featured open-source Discord bot also built by Mad House. Lean means one process, one VPS, no dashboard, no agents, no music stack. Everything a growing community needs, nothing it doesn't.
+It's a lean build of [Chopsticks](https://github.com/samhcharles/chopsticks) — the full-featured open-source Discord bot also built by Mad House. Lean means one process, one VPS, no dashboard, no music stack. We stripped everything the Mad House server doesn't actually use. What's left is everything a real community needs.
 
 ---
 
 ## Quickest Setup — Let an AI Do It
 
-Copy the prompt below into [Claude Code](https://claude.ai/code), Cursor, or any AI coding assistant. It'll walk you through the entire process — you just answer its questions.
+Copy the prompt below into [Claude Code](https://claude.ai/code), Cursor, or any AI coding assistant. It'll walk you through the whole setup — you just answer its questions.
 
-```
+```text
 I want to self-host the Chopsticks Lean Discord bot for my Discord server.
 The repo is at https://github.com/samhcharles/chopsticks-lean
 
@@ -74,7 +74,7 @@ The whole process takes under 15 minutes.
 
 ## Requirements
 
-```
+```text
 Node.js 22+
 PostgreSQL 15+
 Redis 7+
@@ -197,12 +197,12 @@ graph LR
 
 ---
 
-## Origin
+## Where It Came From
 
-Chopsticks Lean is derived from [Chopsticks](https://github.com/samhcharles/chopsticks), the full-featured open-source Discord bot built by Mad House. The lean build exists because the Mad House server doesn't need every feature — and running lean means fewer things to maintain, fewer things to break, and lower VPS cost.
+Chopsticks Lean is a stripped build of [Chopsticks](https://github.com/samhcharles/chopsticks), the full-featured open-source Discord bot built by Mad House. We run the lean version on the Mad House server because we don't need music, trading cards, or a web dashboard — and every service you don't run is a service that can't break.
 
 > [!TIP]
-> Want every feature including music, AI agents, and a web dashboard? Start from the [full Chopsticks repo](https://github.com/samhcharles/chopsticks) instead.
+> Want music, AI agents, and a web dashboard? Use the [full Chopsticks repo](https://github.com/samhcharles/chopsticks) instead.
 
 ---
 
