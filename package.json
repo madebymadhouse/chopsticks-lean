@@ -6,11 +6,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/samhcharles/chopsticks-lean.git"
+    "url": "git+https://github.com/madebymadhouse/chopsticks-lean.git"
   },
-  "homepage": "https://github.com/samhcharles/chopsticks-lean",
+  "homepage": "https://github.com/madebymadhouse/chopsticks-lean",
   "bugs": {
-    "url": "https://github.com/samhcharles/chopsticks-lean/issues"
+    "url": "https://github.com/madebymadhouse/chopsticks-lean/issues"
   },
   "keywords": [
     "discord",

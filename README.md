@@ -4,12 +4,12 @@
 
 **Self-hosted Discord bot. Moderation, economy, tickets, voice rooms, leveling.**
 
-![License](https://img.shields.io/github/license/samhcharles/chopsticks-lean)
-![Version](https://img.shields.io/github/package-json/v/samhcharles/chopsticks-lean)
+![License](https://img.shields.io/github/license/madebymadhouse/chopsticks-lean)
+![Version](https://img.shields.io/github/package-json/v/madebymadhouse/chopsticks-lean)
 ![Node](https://img.shields.io/badge/node-%3E%3D22-brightgreen)
 ![Discord.js](https://img.shields.io/badge/discord.js-v14-5865F2)
 ![Docker](https://img.shields.io/badge/docker-compose-2496ED)
-![Last Commit](https://img.shields.io/github/last-commit/samhcharles/chopsticks-lean)
+![Last Commit](https://img.shields.io/github/last-commit/madebymadhouse/chopsticks-lean)
 
 </div>
 
@@ -21,13 +21,19 @@ It's a lean build of [Chopsticks](https://github.com/samhcharles/chopsticks) —
 
 ---
 
-## Quickest Setup — Let an AI Do It
+## Don't Feel Like Reading?
+
+Drop this repo into any AI assistant — Claude, ChatGPT, Copilot, whatever you use — and ask it to explain the project, walk you through setup, or answer any question you have. Everything it needs to understand this repo is already here.
+
+---
+
+## Quickest Setup — Let an Agent Do It
 
 Copy the prompt below into [Claude Code](https://claude.ai/code), Cursor, or any AI coding assistant. It'll walk you through the whole setup — you just answer its questions.
 
 ```text
 I want to self-host the Chopsticks Lean Discord bot for my Discord server.
-The repo is at https://github.com/samhcharles/chopsticks-lean
+The repo is at https://github.com/madebymadhouse/chopsticks-lean
 
 Please help me:
 1. Clone the repo and review what it does
@@ -95,7 +101,7 @@ Go to [discord.com/developers](https://discord.com/developers/applications), cre
 **2. Clone and configure**
 
 ```bash
-git clone https://github.com/samhcharles/chopsticks-lean.git
+git clone https://github.com/madebymadhouse/chopsticks-lean.git
 cd chopsticks-lean
 cp .env.example .env
 ```
