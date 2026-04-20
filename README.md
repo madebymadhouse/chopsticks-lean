@@ -1,4 +1,19 @@
+<div align="center">
+
 # Chopsticks Lean
+
+**A self-hosted Discord bot for moderation, economy, voice rooms, and community tools.**
+
+![License](https://img.shields.io/github/license/samhcharles/chopsticks-lean)
+![Version](https://img.shields.io/github/package-json/v/samhcharles/chopsticks-lean)
+![Node](https://img.shields.io/badge/node-%3E%3D22-brightgreen)
+![Discord.js](https://img.shields.io/badge/discord.js-v14-5865F2)
+![Docker](https://img.shields.io/badge/docker-compose-2496ED)
+![Last Commit](https://img.shields.io/github/last-commit/samhcharles/chopsticks-lean)
+
+</div>
+
+---
 
 The Discord bot running the [Mad House](https://madebymadhouse.cloud) community server.
 
@@ -8,7 +23,7 @@ This is a lean build of [Chopsticks](https://github.com/samhcharles/chopsticks) 
 
 ## Quickest Setup — Let an AI Do It
 
-If you want to run this bot on your own server and don't want to figure out the setup yourself, copy the prompt below into [Claude Code](https://claude.ai/code), Cursor, or any AI coding assistant. It'll walk you through the entire process — you just answer its questions.
+Copy the prompt below into [Claude Code](https://claude.ai/code), Cursor, or any AI coding assistant. It'll walk you through the entire process — you just answer its questions.
 
 ```
 I want to self-host the Chopsticks Lean Discord bot for my Discord server.
@@ -26,60 +41,34 @@ I have a Linux VPS with Docker and Docker Compose installed.
 Walk me through each step one at a time.
 ```
 
-That's it. The AI will handle everything. The whole process takes under 15 minutes.
+The whole process takes under 15 minutes.
 
 ---
 
 ## What's Included
 
-**Moderation**
-- Warn, timeout, kick, ban, purge
-- Mod logs, antispam, automod, verification gate
-
-**Tickets**
-- Private ticket channels with support role access
-- Transcripts on close
-- Auto-close after 48 hours of owner inactivity
-- Optional support discussion channel crosspost
-
-**Voice Rooms**
-- Lobby-based temporary voice rooms (join lobby → get a private room)
-- Per-room control panel: rename, resize, set public/private, guestlist, restrictions
-- Auto-delete when everyone leaves
-
-**Leveling / Creds**
-- Activity-based Creds system (chat + voice)
-- Rank cards, leaderboard, level-up announcements
-- Configurable level roles
-
-**Economy**
-- Balance, daily, work, gather, pay
-- Creds as server currency
-
-**Scheduled Messages**
-- Water reminders, custom polls, DM broadcasts
-- Persistent across restarts
-
-**Server Tools**
-- Welcome, rules, and FAQ post commands with generated SVG banners
-- Reaction roles
-- Reminders
-- Starboard
-- Suggestions
-
-**DM Updates**
-- Role-gated DM broadcast system (`/dm-update broadcast`)
-- `!subscribe` / `!unsub` for members to opt in/out
+| | |
+|---|---|
+| 🛡️ **Moderation** | Warn, timeout, kick, ban, purge, mod logs, antispam, automod, verification gate |
+| 🎫 **Tickets** | Private channels, transcripts on close, auto-close, support crosspost |
+| 🔊 **Voice Rooms** | Lobby-based temp rooms, per-room control panel, auto-delete |
+| ⭐ **Leveling / Creds** | Activity-based system, rank cards, leaderboard, level roles |
+| 💰 **Economy** | Balance, daily, work, gather, pay |
+| 📅 **Scheduled Messages** | Water reminders, custom polls, DM broadcasts |
+| 🔧 **Server Tools** | Welcome/rules/FAQ posts with SVG banners, reaction roles, reminders, starboard, suggestions |
+| 📢 **DM Updates** | Role-gated broadcast system with member opt-in/out |
 
 ---
 
 ## What's Stripped (vs full Chopsticks)
 
-- No music / Lavalink
-- No AI agents
-- No web dashboard
-- No multi-service voice orchestration
-- No trading cards, casino, pets, or trivia
+| Removed | Reason |
+|---|---|
+| Music / Lavalink | Not needed for most communities |
+| AI agents | Lives in the full stack |
+| Web dashboard | Reduces complexity and VPS cost |
+| Multi-service voice | Overkill for lean deployments |
+| Trading cards, casino, pets, trivia | Full Chopsticks only |
 
 ---
 
@@ -97,11 +86,9 @@ A Discord bot application — discord.com/developers
 
 ## Manual Setup
 
-If you'd rather do it yourself:
-
 **1. Create your Discord bot**
 
-Go to [discord.com/developers](https://discord.com/developers/applications), create a new application, add a bot, and copy the token. Enable the following intents under the Bot tab:
+Go to [discord.com/developers](https://discord.com/developers/applications), create a new application, add a bot, and copy the token. Enable under the Bot tab:
 - Server Members Intent
 - Message Content Intent
 
@@ -115,7 +102,7 @@ cp .env.example .env
 
 Open `.env` and fill in at minimum:
 
-```
+```bash
 DISCORD_TOKEN=your_bot_token
 CLIENT_ID=your_application_id
 DEV_GUILD_ID=your_server_id
@@ -128,7 +115,7 @@ BOT_OWNER_IDS=your_discord_user_id
 docker compose up -d --build
 ```
 
-This starts the bot, Postgres, and Redis together. Postgres and Redis data persist in Docker volumes.
+This starts the bot, Postgres, and Redis together. Data persists in Docker volumes.
 
 **4. Deploy slash commands**
 
@@ -136,11 +123,13 @@ This starts the bot, Postgres, and Redis together. Postgres and Redis data persi
 docker compose exec bot npm run deploy:guild
 ```
 
-Run this once after first boot, and again any time you add or change slash commands.
+> [!NOTE]
+> Run this once after first boot, and again any time you add or change slash commands.
+> Use `deploy:global` for production-wide deployment (takes up to 1 hour to propagate).
 
 **5. Invite the bot**
 
-In the Discord developer portal, go to OAuth2 → URL Generator. Select `bot` and `applications.commands` scopes, then add the permissions your server needs (at minimum: Manage Channels, Manage Roles, Send Messages, Embed Links, Read Message History).
+Go to OAuth2 → URL Generator in the developer portal. Select `bot` and `applications.commands` scopes, then add permissions: Manage Channels, Manage Roles, Send Messages, Embed Links, Read Message History.
 
 ---
 
@@ -185,8 +174,6 @@ docker-compose.yml Bot + Postgres + Redis
 
 ## Running Without Docker
 
-If you're running directly on a VPS with Node, Postgres, and Redis already installed:
-
 ```bash
 npm ci
 npm run migrate
@@ -198,11 +185,24 @@ For process management, use `pm2` or a `systemd` unit. The bot is a single proce
 
 ---
 
+## Architecture
+
+```mermaid
+graph LR
+    Discord[Discord API] --> Bot[chopsticks-lean-bot]
+    Bot --> PG[(PostgreSQL 15)]
+    Bot --> Redis[(Redis 7)]
+    Bot --> Discord
+```
+
+---
+
 ## Origin
 
-Chopsticks Lean is derived from [Chopsticks](https://github.com/samhcharles/chopsticks), the full-featured open-source self-hostable Discord bot built by Mad House. The lean build exists because the Mad House server doesn't need every feature from the full stack — and running lean means fewer things to maintain, fewer things to break, and lower VPS cost.
+Chopsticks Lean is derived from [Chopsticks](https://github.com/samhcharles/chopsticks), the full-featured open-source Discord bot built by Mad House. The lean build exists because the Mad House server doesn't need every feature — and running lean means fewer things to maintain, fewer things to break, and lower VPS cost.
 
-If you want every feature including music, AI agents, and a web dashboard, start from the full Chopsticks repo instead.
+> [!TIP]
+> Want every feature including music, AI agents, and a web dashboard? Start from the [full Chopsticks repo](https://github.com/samhcharles/chopsticks) instead.
 
 ---
 

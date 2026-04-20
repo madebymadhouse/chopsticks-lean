@@ -54,11 +54,12 @@ wait_for_service_ready() {
 }
 
 bot_exec() {
-  docker exec chopsticks-bot sh -lc "$*"
+  docker compose "${COMPOSE_ARGS[@]}" exec bot sh -lc "$*"
 }
 
 health_check() {
-  docker exec chopsticks-bot node -e "fetch('http://127.0.0.1:8080/health').then(r=>process.exit(r.status===200?0:1)).catch(()=>process.exit(1));"
+  local port="${HEALTH_PORT:-${METRICS_PORT:-9100}}"
+  curl -sf "http://127.0.0.1:${port}/healthz" >/dev/null
 }
 
 run_migrations() {
@@ -98,7 +99,7 @@ case "$cmd" in
     log "waiting for bot container readiness"
     if ! wait_for_service_ready bot 240; then
       docker compose "${COMPOSE_ARGS[@]}" ps || true
-      die "bot did not become ready in time (check: docker logs chopsticks-bot)"
+      die "bot did not become ready in time (check: docker compose logs bot)"
     fi
 
     log "waiting for /health"
