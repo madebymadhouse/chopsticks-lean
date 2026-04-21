@@ -212,33 +212,6 @@ Chopsticks Lean is a stripped build of [Chopsticks](https://github.com/samhcharl
 
 ---
 
-## Agents
-
-All agents live in `.github/agents/`. Drop any of them into VS Code and invoke by name.
-
-| Agent | What it does |
-|---|---|
-| [`@delegator`](./.github/agents/delegator.agent.md) | Your single entry point — describe what you want, it picks the right agents and dispatches them in order |
-| [`@orchestrator`](./.github/agents/orchestrator.agent.md) | Coordinates the full fleet for large or cross-cutting tasks |
-| [`@context-keeper`](./.github/agents/context-keeper.agent.md) | Writes session logs and handoffs so work doesn't get lost between sessions |
-| [`@librarian`](./.github/agents/librarian.agent.md) | Org-wide unification — branding, badges, wording, cross-repo sync |
-| [`@git-keeper`](./.github/agents/git-keeper.agent.md) | Branching strategy, conventional commits, PR descriptions, clean git history |
-| [`@coder`](./.github/agents/coder.agent.md) | Writes and changes production code |
-| [`@debugger`](./.github/agents/debugger.agent.md) | Root cause analysis — reads the failure, finds why, fixes it |
-| [`@reviewer`](./.github/agents/reviewer.agent.md) | Reviews code before it merges |
-| [`@security`](./.github/agents/security.agent.md) | Security audit — secrets, auth, injection, deps |
-| [`@auditor`](./.github/agents/auditor.agent.md) | Full structured audit of the repo |
-| [`@updater`](./.github/agents/updater.agent.md) | Acts on audit findings systematically |
-| [`@writer`](./.github/agents/writer.agent.md) | Humanizes any doc or README section |
-| [`@beautiful-readme`](./.github/agents/beautiful-readme.agent.md) | Writes READMEs to the Mad House visual standard |
-| [`@bot-dev-playbook`](./.github/agents/bot-dev-playbook.agent.md) | Bot development workflow, standards, handoff coordination |
-| [`@playbook-builder`](./.github/agents/playbook-builder.agent.md) | Turns repeated chat guidance into a durable repo |
-| [`@vps-maintenance-planner`](./.github/agents/vps-maintenance-planner.agent.md) | VPS maintenance planning and runbooks |
-
-Full agent roster: [madebymadhouse/agents](https://github.com/madebymadhouse/agents)
-
----
-
 ## Contributing
 
 This is the live bot running the Mad House server. Contributions are welcome, but the bar is real — anything that ships runs in production.
