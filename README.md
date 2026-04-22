@@ -1,6 +1,6 @@
 <div align="center">
 
-# Chopsticks Lean
+# Chopsticks (Lean)
 
 **Self-hosted Discord bot. Moderation, economy, tickets, voice rooms, leveling.**
 
